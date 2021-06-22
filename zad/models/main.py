@@ -104,25 +104,37 @@ class Zone(object):
                 fqdn = name
             else:               # no, relative - make absolute
                 fqdn = name + '.' + self.zone_name
-        elif dtype in ('A', 'AAAA'):                                # address
+            if len(domainZones.keys()) > zad.common.MAX_ZONES:
+                return
+        elif dtype == 'A':                                # address
+            if len(ip4Zones.keys()) > zad.common.MAX_ZONES:
+                return
+            fqdn = dns.reversename.from_address(name)
+        elif dtype == 'AAAA':                                # address
+            if len(ip6Zones.keys()) > zad.common.MAX_ZONES:
+                return
             fqdn = dns.reversename.from_address(name)
         else:                                                       # ignore others
             return
         try:
-            print('createZoneFromName: {}'.format(fqdn))
             zoneName = str(dns.resolver.zone_for_name(fqdn))
-            print('createZoneFromName: {} done'.format(fqdn))
         except dns.name.EmptyLabel:
             print('Empty label: name={}, dtype={}'.format(name, dtype))
         except BaseException:
+            print('%createZoneFromName/zone_for_name failed {}, because {} [{}]'.
+                 format(fqdn,
+                 sys.exc_info()[0].__name__,
+                 str(sys.exc_info()[1])))
             return
         ##print('type={}, name={}, fqdn={}, zone={}'.format(dtype, name, fqdn, zoneName))
+        print('createZoneFromName: {}'.format(fqdn))
         if dtype == 'A' and zoneName not in ip4Zones:
             ip4Zones[zoneName] = Ip4Zone(zoneName)
         elif dtype == 'AAAA' and zoneName not in ip6Zones:
             ip6Zones[zoneName] = Ip6Zone(zoneName)
         elif dtype in ('NS', 'MX', 'CNAME', 'DNAME', 'PTR', 'SRV') and zoneName not in domainZones:
             domainZones[zoneName] = DomainZone(zoneName)
+        print('createZoneFromName: {} done'.format(fqdn))
 
     def columnCount(self):
         if len(self.d) < 2:
