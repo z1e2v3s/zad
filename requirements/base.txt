@@ -1,0 +1,2 @@
+dnspython[dnssec]==2.1.0
+PyQt5==5.15.4
