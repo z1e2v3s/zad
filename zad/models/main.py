@@ -67,9 +67,9 @@ class Zone(object):
                 break
             except dns.xfr.TransferError:
                 print('%loadZone: AXFR failed with NS={}'.format(ns))
-            except BaseException():
+            except BaseException:
                 print('%loadZone: Error on AXFR with NS={}'.format(ns))
-                break
+            
         else:
             print('?loadZone failed. Giving up.')
             self.d = [['', '', '', ''], ['', '', '', '']]
@@ -114,7 +114,7 @@ class Zone(object):
             print('createZoneFromName: {} done'.format(fqdn))
         except dns.name.EmptyLabel:
             print('Empty label: name={}, dtype={}'.format(name, dtype))
-        except BaseException():
+        except BaseException:
             return
         ##print('type={}, name={}, fqdn={}, zone={}'.format(dtype, name, fqdn, zoneName))
         if dtype == 'A' and zoneName not in ip4Zones:
