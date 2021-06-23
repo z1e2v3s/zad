@@ -49,6 +49,7 @@ class Zone(object):
         self.z = dns.zone
         self.d = [['', '', '', '']]
         self.valid = False
+        self.ip6zns = 0
 
     def data(self, row: int, column: int) -> str:
         if not self.d:
@@ -59,6 +60,7 @@ class Zone(object):
 
     def loadZone(self):
         row = 0
+        j = 0
 
         print('[loadZone: zone={}, NS={}]'.format(self.zone_name, zad.common.IP_XFR_NS))
         for ns in zad.common.IP_XFR_NS:
@@ -75,7 +77,7 @@ class Zone(object):
             self.d = [['', '', '', ''], ['', '', '', '']]
             return
         
-        print('[loadZone: zone={}, loaded with {} RRs'.format(self.zone_name, len(self.z.keys())))
+        print('[loadZone: zone={}, loaded with {} RRs]'.format(self.zone_name, len(self.z.keys())))
         for name in self.z.keys():
             zn = name = str(name)
             if name == '@': name = ''
@@ -93,6 +95,14 @@ class Zone(object):
                     self.createZoneFromName(srdatatype, srdata)
                     row = row + 1
                     self.d.append(['', '', '', ''])
+            j = j + 1
+            if j > zad.common.MAX_KEYS:
+            	print('loadZone: reached {} zone keys, will stop loading'.format(zad.common.MAX_KEYS))
+            	print('loadZone: domain zones: {}'.format(len(domainZones.keys())))
+            	print('loadZone: ip4 zones: {}'.format(len(ip4Zones.keys())))
+            	print('loadZone: ip6 zones: {}'.format(len(ip6Zones.keys())))
+            	print('loadZone: skipped {} calls for AAAA reversenames'.format(self.ip6zns))
+            	break
         self.valid = True
         print('[loadZone: zone={} done.]'.format(self.zone_name))
         
@@ -116,6 +126,11 @@ class Zone(object):
             fqdn = dns.reversename.from_address(name)
         else:                                                       # ignore others
             return
+        ## TEMPORARY hgu: reversename for AAAA ALWAY times out
+        if str(fqdn).endswith("ip6.arpa."):
+            self.ip6zns = self.ip6zns + 1
+            return
+        ##
         try:
             zoneName = str(dns.resolver.zone_for_name(fqdn))
         except dns.name.EmptyLabel:
@@ -127,14 +142,15 @@ class Zone(object):
                  str(sys.exc_info()[1])))
             return
         ##print('type={}, name={}, fqdn={}, zone={}'.format(dtype, name, fqdn, zoneName))
-        print('createZoneFromName: {}'.format(fqdn))
         if dtype == 'A' and zoneName not in ip4Zones:
             ip4Zones[zoneName] = Ip4Zone(zoneName)
+            print('createZoneFromName: A {}'.format(fqdn))
         elif dtype == 'AAAA' and zoneName not in ip6Zones:
             ip6Zones[zoneName] = Ip6Zone(zoneName)
+            print('createZoneFromName: AAAA {}'.format(fqdn))
         elif dtype in ('NS', 'MX', 'CNAME', 'DNAME', 'PTR', 'SRV') and zoneName not in domainZones:
             domainZones[zoneName] = DomainZone(zoneName)
-        print('createZoneFromName: {} done'.format(fqdn))
+            print('createZoneFromName: dtype {}, {}'.format(dtype, fqdn))
 
     def columnCount(self):
         if len(self.d) < 2:

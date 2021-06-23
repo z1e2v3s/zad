@@ -14,6 +14,7 @@ def setup():
 
     mw = ZaMainWindow()
     model = zad.models.main.ZoneModel()
+    statusBar = mw.statusbar
     view = mw.maintableView
     view.setColumnWidth(0, 200)
     view.setColumnWidth(1, 40)
@@ -23,6 +24,7 @@ def setup():
     hh.setStretchLastSection(True)
     hh.setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
     zad.models.main.loadZones()
+    statusBar.showMessage('Zones loaded')
     ##zad.models.main.loadZones()
     ##zad.models.main.loadZones()
     view.setModel(model)
