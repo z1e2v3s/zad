@@ -74,8 +74,7 @@ class Zone(object):
     def loadZone(self):
         row = 0
 
-        if zad.common.DEBUG:
-            print('[loadZone: zone={}, NS={}]'.format(self.zone_name, zad.common.IP_XFR_NS))
+        print('[Loading zone {}, from NS {}]'.format(self.zone_name, zad.common.IP_XFR_NS))
         for ns in zad.common.IP_XFR_NS:
             try:
                 self.z = dns.zone.from_xfr(dns.query.xfr(ns, self.zone_name))
