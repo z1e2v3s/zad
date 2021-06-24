@@ -18,13 +18,18 @@
 # limitations under the License.
 
 
+DEBUG = False
+
 IP_XFR_NS = ['2001:4bd8:0:104:217:17:192:66', '217.17.192.66',  '2001:4860:4802:32::72', '216.239.32.114']
 
-IP_RESOLVER = ['2606:4700:4700::1111', '1.1.1.1', '2606:4700:4700::1001', '1.0.0.1']
+##IP_RESOLVER = ['2606:4700:4700::1111', '1.1.1.1', '2606:4700:4700::1001', '1.0.0.1']
+IP_RESOLVER = []
 
-MAX_ZONES = 20
-MAX_KEYS = 200
+INITIAL_DOMAIN = 'iks-jena.de'
 
+MAX_ZONES = 5
 
+TIMEOUT_RETRIES = 0
+TIMEOUT_SLEEP = 5
 
 windowHeading = 'za - DNS zone admin'
