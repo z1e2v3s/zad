@@ -3,6 +3,7 @@ from PyQt5 import QtWidgets
 import zad.pyuic.mainwindow
 import zad.models.main
 
+mainWindow = None
 
 class ZaMainWindow(QtWidgets.QMainWindow,zad.pyuic.mainwindow.Ui_mainWindow):
     def __init__(self):
@@ -11,11 +12,12 @@ class ZaMainWindow(QtWidgets.QMainWindow,zad.pyuic.mainwindow.Ui_mainWindow):
 
 
 def setup():
+    global mainWindow
 
-    mw = ZaMainWindow()
+    mainWindow = ZaMainWindow()
     model = zad.models.main.ZoneModel()
-    statusBar = mw.statusbar
-    view = mw.maintableView
+    statusBar = mainWindow.statusbar
+    view = mainWindow.maintableView
     view.setColumnWidth(0, 200)
     view.setColumnWidth(1, 40)
     view.setColumnWidth(2, 40)
@@ -28,6 +30,7 @@ def setup():
     ##zad.models.main.loadZones()
     statusBar.showMessage('Zone loaded')
     view.setModel(model)
-    mw.show()
+    mainWindow.show()
     print('After mw.show')
-    
+    return
+
