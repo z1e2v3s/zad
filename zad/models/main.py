@@ -1,11 +1,13 @@
-from PyQt5 import QtCore
-
-import dns.query, dns.resolver, dns.zone, dns.rdataset, dns.rdatatype
-import dns.exception
+import logging
 import sys
 import time
+import dns.query, dns.resolver, dns.zone, dns.rdataset, dns.rdatatype
+import dns.exception
+from PyQt5 import QtCore
 
 import zad.common
+
+l = logging.getLogger(__name__)
 
 domainZones = {}
 ip4Zones = {}
@@ -74,23 +76,22 @@ class Zone(object):
     def loadZone(self):
         row = 0
 
-        print('[Loading zone {}, from NS {}]'.format(self.zone_name, zad.common.IP_XFR_NS))
+        l.info('[Loading zone {}, from NS {}]'.format(self.zone_name, zad.common.IP_XFR_NS))
         for ns in zad.common.IP_XFR_NS:
             try:
                 self.z = dns.zone.from_xfr(dns.query.xfr(ns, self.zone_name))
                 break
             except dns.xfr.TransferError:
-                print('%loadZone: {} AXFR failed with NS={}'.format(self.zone_name, ns))
+                l.error('%loadZone: {} AXFR failed with NS={}'.format(self.zone_name, ns))
             except BaseException:
-                print('%loadZone: {} Error on AXFR with NS={}'.format(self.zone_name, ns))
+                l.error('%loadZone: {} Error on AXFR with NS={}'.format(self.zone_name, ns))
             
         else:
-            print('?loadZone {} failed. Giving up.'.format(self.zone_name))
+            l.error('?loadZone {} failed. Giving up.'.format(self.zone_name))
             self.d = [['', '', '', ''], ['', '', '', '']]
             return
         
-        if zad.common.DEBUG:
-            print('[loadZone: zone={}, loaded with {} RRs'.format(self.zone_name, len(self.z.keys())))
+        l.debug('[loadZone: zone={}, loaded with {} RRs'.format(self.zone_name, len(self.z.keys())))
         for name in self.z.keys():
             zn = name = str(name)
             if name == '@': name = ''
@@ -109,11 +110,11 @@ class Zone(object):
                         self.createZoneFromName(srdatatype, srdata)
                         row = row + 1
                     self.d.append(['', '', '', ''])
-                    ##print('.', end=' ', flush=True)
-                ##print('+', end=' ', flush=True)
+                    ##l.debug('.', end=' ', flush=True)
+                ##l.debug('+', end=' ', flush=True)
         self.valid = True
-        print('[loadZone: zone={} done.]'.format(self.zone_name))
-        printZones()            
+        l.info('[loadZone: zone={} done.]'.format(self.zone_name))
+        logZones()
         
 
     def createZoneFromName(self, dtype, name):
@@ -137,25 +138,24 @@ class Zone(object):
             return
         try:
             zoneName = str(dns.resolver.zone_for_name(fqdn, tcp=True))
-            if zad.common.DEBUG:
-                print('createZoneFromName: name={}, fqdn={} OK: zone={}'.format(name, fqdn, zoneName))
+            l.debug('createZoneFromName: name={}, fqdn={} OK: zone={}'.format(name, fqdn, zoneName))
         except dns.name.EmptyLabel:
-            print('Empty label: name={}, dtype={}'.format(name, dtype))
+            l.warning('%Empty label: name={}, dtype={}'.format(name, dtype))
             return
         except dns.exception.Timeout:
-            print('%{} timed out . . .'.format(fqdn))
+            l.warning('%{} timed out . . .'.format(fqdn))
             for i in range(zad.common.TIMEOUT_RETRIES):
                 time.sleep(zad.common.TIMEOUT_SLEEP)
                 try:
                     zoneName = str(dns.resolver.zone_for_name(fqdn, tcp=True))
                 except dns.name.EmptyLabel:
-                    print('Empty label: name={}, dtype={}'.format(name, dtype))
+                    l.warning('%Empty label: name={}, dtype={}'.format(name, dtype))
                     return
                 except dns.exception.Timeout:
-                    print('%{} timed out . . .'.format(fqdn))
+                    l.warning('%{} timed out . . .'.format(fqdn))
                     continue
                 except BaseException:
-                    print('%createZoneFromName/zone_for_name name={}, fqdn={},\n    because {} [{}]'.
+                    l.error('%createZoneFromName/zone_for_name name={}, fqdn={},\n    because {} [{}]'.
                          format(name, fqdn,
                          sys.exc_info()[0].__name__,
                          str(sys.exc_info()[1])))
@@ -163,14 +163,13 @@ class Zone(object):
             else:
                 return
         except BaseException:
-            print('%createZoneFromName/zone_for_name name={}, fqdn={},\n    because {} [{}]'.
+            l.error('%createZoneFromName/zone_for_name name={}, fqdn={},\n    because {} [{}]'.
                  format(name, fqdn,
                  sys.exc_info()[0].__name__,
                  str(sys.exc_info()[1])))
             return
-        ##print('type={}, name={}, fqdn={}, zone={}'.format(dtype, name, fqdn, zoneName))
-        if zad.common.DEBUG:
-            print('createZoneFromName: {}'.format(fqdn))
+        ##l.debug('type={}, name={}, fqdn={}, zone={}'.format(dtype, name, fqdn, zoneName))
+        l.debug('createZoneFromName: {}'.format(fqdn))
         if dtype == 'A' and zoneName not in ip4Zones:
             ip4Zones[zoneName] = Ip4Zone(zoneName)
         elif dtype == 'AAAA' and zoneName not in ip6Zones:
@@ -217,20 +216,20 @@ def loadZones():
         z.loadZone()
 
 
-def printZones():
-    print('[Known Zones:]')
+def logZones():
+    l.info('[Known Zones:]')
     pd = ''
     i = 0
     dtn = ['Domain Zones', 'IP4 Zones', 'IP6 Zones']
     
     for d in (domainZones, ip4Zones, ip6Zones):
         if not pd == d:
-            print('\n[{}]'.format(dtn[i]))
+            l.info('\n[{}]'.format(dtn[i]))
             pd = d
             i += 1
         for k in d.keys():
             z = d[k]
-            print('{}{}'.format(k, '[loaded]' if len(z.d) > 1 else ''))
+            l.info('{}{}'.format(k, '[loaded]' if len(z.d) > 1 else ''))
 
 def setupResolver(resolver_addresses):
 

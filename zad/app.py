@@ -17,17 +17,68 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from PyQt5 import QtWidgets
+from PyQt5 import QtCore, QtWidgets
+import logging
 import sys
 
 import zad.models.main
 import zad.views.main
 
-
+application:QtWidgets.QApplication = None
+translator:QtCore.QTranslator = None
+locale:QtCore.QLocale = None
 def run():
-    a = QtWidgets.QApplication(sys.argv)
+
+    setup()
+    init_translations()
+    init_logging(zad.common.DEFAULT_LOG_PATH)
 
     zad.models.main.setup()
     zad.views.main.setup()
-    print('Before a.exec_()')
-    sys.exit(a.exec_())
+    if zad.common.DEBUG: print('Before application.exec_()')
+    sys.exit(application.exec_())
+
+
+def setup():
+    global application
+
+    application = QtWidgets.QApplication(sys.argv)
+
+
+def init_translations():
+    """
+    Loads translations for a given input app. If a scaling factor is defined for testing, we use
+    our own subclass of QTranslator.
+    """
+    global application, translator, locale
+
+    ##locale = QLocale(system())                    # set to system locale
+    QtCore.QLocale.setDefault(QtCore.QLocale('en')) # ? set to English for now
+    locale = QtCore.QLocale()
+
+
+def init_logging(path:str):
+    # info, warning and error goes to file and to console if DEBUG set
+    # debug goes to console only (if DEBUG set)
+    
+    logger = logging.getLogger()
+    if zad.common.DEBUG:
+        stdout_formatter = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
+        
+        stdout_handler = logging.StreamHandler(sys.stdout)
+        stdout_handler.setLevel(logging.DEBUG)
+        stdout_handler.setFormatter(stdout_formatter)
+
+        logger.addHandler(stdout_handler)
+
+    else:
+        logger.setLevel(logging.INFO)
+            
+    file_formatter = logging.Formatter('%(asctime)s %(name)s - %(levelname)s - %(message)s', 
+                              '%m-%d-%Y %H:%M:%S')
+
+    file_handler = logging.FileHandler(path)  ##FIXME##
+    file_handler.setLevel(logging.INFO)
+    file_handler.setFormatter(file_formatter)
+
+    logger.addHandler(file_handler)
