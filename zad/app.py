@@ -43,7 +43,9 @@ def setup():
     global application
 
     application = QtWidgets.QApplication(sys.argv)
-
+    application.setApplicationName('zad')
+    application.setOrganizationDomain('chaos1.de')
+    application.setApplicationVersion(zad.get_version())
 
 def init_translations():
     """
