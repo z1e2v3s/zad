@@ -109,7 +109,14 @@
        </widget>
       </item>
       <item row="0" column="2">
-       <widget class="QListWidget" name="ipv4ListWidget"/>
+       <widget class="QListWidget" name="ipv4ListWidget">
+        <property name="focusPolicy">
+         <enum>Qt::ClickFocus</enum>
+        </property>
+        <property name="tabKeyNavigation">
+         <bool>false</bool>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -135,7 +142,11 @@
        </widget>
       </item>
       <item row="0" column="2">
-       <widget class="QListWidget" name="ipv6ListWidget"/>
+       <widget class="QListWidget" name="ipv6ListWidget">
+        <property name="focusPolicy">
+         <enum>Qt::ClickFocus</enum>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -161,7 +172,11 @@
        </widget>
       </item>
       <item row="0" column="2">
-       <widget class="QListWidget" name="ignoredListWidget"/>
+       <widget class="QListWidget" name="ignoredListWidget">
+        <property name="focusPolicy">
+         <enum>Qt::ClickFocus</enum>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -212,6 +227,9 @@
         <property name="text">
          <string>Ok</string>
         </property>
+        <property name="default">
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
      </layout>
@@ -219,6 +237,23 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>masterServerLineEdit</tabstop>
+  <tabstop>ddnsKeyFileLineEdit</tabstop>
+  <tabstop>serverForZoneTransferLineEdit</tabstop>
+  <tabstop>initialDomainLineEdit</tabstop>
+  <tabstop>ipv4PlusButton</tabstop>
+  <tabstop>ipv4MinusButton</tabstop>
+  <tabstop>ipv6PlusButton</tabstop>
+  <tabstop>ipv6MinusButton</tabstop>
+  <tabstop>ignoredPlusButton</tabstop>
+  <tabstop>ignoredMinusButton</tabstop>
+  <tabstop>revertButton</tabstop>
+  <tabstop>OkButton</tabstop>
+  <tabstop>ignoredListWidget</tabstop>
+  <tabstop>ipv4ListWidget</tabstop>
+  <tabstop>ipv6ListWidget</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
