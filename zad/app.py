@@ -24,14 +24,20 @@ import sys
 import zad.models.main
 import zad.views.main
 
-application:QtWidgets.QApplication = None
-translator:QtCore.QTranslator = None
-locale:QtCore.QLocale = None
+application: QtWidgets.QApplication = None
+translator: QtCore.QTranslator = None
+locale: QtCore.QLocale = None
+
+settings: QtCore.QSettings = None
+
+
 def run():
 
     setup()
     init_translations()
     init_logging(zad.common.DEFAULT_LOG_PATH)
+
+    zad.models.settings.setup()
 
     zad.models.main.setup()
     zad.views.main.setup()
@@ -43,9 +49,7 @@ def setup():
     global application
 
     application = QtWidgets.QApplication(sys.argv)
-    application.setApplicationName('zad')
-    application.setOrganizationDomain('chaos1.de')
-    application.setApplicationVersion(zad.get_version())
+
 
 def init_translations():
     """

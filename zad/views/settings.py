@@ -1,5 +1,5 @@
 import logging
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, uic
 import zad.pyuic.mainwindow
 import zad.models.main
 
@@ -13,9 +13,13 @@ class ZaSettinsDialog(QtWidgets.QMainWindow,zad.pyuic.mainwindow.Ui_mainWindow):
         self.setupUi(self)
 
 
+class ZaSettingsDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        uic.loadUi("../Designer/settings.ui", self)
+
 def setup():
     global settingsDialog
 
     settingsDialog = ZaSettinsDialog()
-    return
 
