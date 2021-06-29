@@ -116,7 +116,6 @@
             <widget class="QTableView" name="maintableView">
              <property name="font">
               <font>
-               <family>Monaco</family>
                <pointsize>11</pointsize>
               </font>
              </property>
@@ -185,6 +184,9 @@
         <layout class="QVBoxLayout" name="verticalLayout">
          <item>
           <layout class="QFormLayout" name="formLayout">
+           <property name="fieldGrowthPolicy">
+            <enum>QFormLayout::ExpandingFieldsGrow</enum>
+           </property>
            <item row="0" column="0">
             <widget class="QLabel" name="nameAddressLabel">
              <property name="text">
