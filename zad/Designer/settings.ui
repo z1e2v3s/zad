@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>387</width>
-    <height>347</height>
+    <width>506</width>
+    <height>497</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,166 +15,177 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QGridLayout" name="gridLayout">
+    <layout class="QFormLayout" name="formLayout">
      <item row="0" column="0">
-      <layout class="QFormLayout" name="formLayout_1">
-       <item row="0" column="0">
-        <widget class="QLabel" name="masterServerLabel">
-         <property name="text">
-          <string>Master Server</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLineEdit" name="masterServerEdit">
-         <property name="toolTip">
-          <string comment="masterServerToolTip" extracomment="DNS server to use for dynamic updates"/>
-         </property>
-        </widget>
-       </item>
-      </layout>
+      <widget class="QLabel" name="masterServerLabel">
+       <property name="text">
+        <string>Master Server</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="masterServerLineEdit"/>
      </item>
      <item row="1" column="0">
-      <layout class="QFormLayout" name="formLayout_2">
-       <item row="0" column="0">
-        <widget class="QLabel" name="ddnsKeyFilePathLabel">
-         <property name="text">
-          <string>ddns Key File</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLineEdit" name="ddnsKeyFilePathEdit"/>
-       </item>
-      </layout>
+      <widget class="QLabel" name="ddnsKeyFileLabel">
+       <property name="text">
+        <string>ddns Key File</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="ddnsKeyFileLineEdit"/>
      </item>
      <item row="2" column="0">
-      <layout class="QFormLayout" name="formLayout_3">
-       <item row="0" column="0">
-        <widget class="QLabel" name="zoneTransferServerLabel">
-         <property name="text">
-          <string>Server for Zone Transfer</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLineEdit" name="zoneTransferServerEdit"/>
-       </item>
-      </layout>
+      <widget class="QLabel" name="serverForZoneTransferLabel">
+       <property name="text">
+        <string>Server for Zone Transfer</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLineEdit" name="serverForZoneTransferLineEdit"/>
      </item>
      <item row="3" column="0">
-      <layout class="QFormLayout" name="formLayout_4">
-       <item row="0" column="0">
-        <widget class="QLabel" name="ip4NetworksLabel">
-         <property name="text">
-          <string>IPv4 networks</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QListView" name="ip4NetworksListView">
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>16777215</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-      </layout>
+      <widget class="QLabel" name="initialDomainLabel">
+       <property name="text">
+        <string>Initial Domain</string>
+       </property>
+      </widget>
      </item>
-     <item row="4" column="0">
-      <layout class="QFormLayout" name="formLayout_5">
-       <item row="0" column="0">
-        <widget class="QLabel" name="ip6NetworksLabel">
-         <property name="text">
-          <string>IPv6 Networks</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QListView" name="ip4NetworksListView_2">
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>16777215</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item row="5" column="0">
-      <layout class="QFormLayout" name="formLayout_6">
-       <item row="0" column="0">
-        <widget class="QLabel" name="ignoredZonesLabel">
-         <property name="text">
-          <string>Ignored Zones</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QListView" name="ignoredZonesListView">
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>16777215</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item row="6" column="0">
-      <layout class="QHBoxLayout" name="horizontalLayout">
-       <item>
-        <spacer name="horizontalSpacer">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <widget class="QPushButton" name="RevertButton">
-         <property name="text">
-          <string>Revert</string>
-         </property>
-         <attribute name="buttonGroup">
-          <string notr="true">buttonGroup</string>
-         </attribute>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="OKButton">
-         <property name="maximumSize">
-          <size>
-           <width>50</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>ok</string>
-         </property>
-         <attribute name="buttonGroup">
-          <string notr="true">buttonGroup</string>
-         </attribute>
-        </widget>
-       </item>
-      </layout>
+     <item row="3" column="1">
+      <widget class="QLineEdit" name="initialDomainLineEdit"/>
      </item>
     </layout>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox">
+     <property name="title">
+      <string>IPv4 Networks</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="0" column="1">
+       <widget class="QPushButton" name="ipv4MinusButton">
+        <property name="text">
+         <string>-</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QPushButton" name="ipv4PlusButton">
+        <property name="text">
+         <string>+</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QListWidget" name="ipv4ListWidget"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox_2">
+     <property name="title">
+      <string>IPv6 Networks</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="0" column="1">
+       <widget class="QPushButton" name="ipv6MinusButton">
+        <property name="text">
+         <string>-</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QPushButton" name="ipv6PlusButton">
+        <property name="text">
+         <string>+</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QListWidget" name="ipv6ListWidget"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox_3">
+     <property name="title">
+      <string>Ignored Zones</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_3">
+      <item row="0" column="1">
+       <widget class="QPushButton" name="ignoredMinusButton">
+        <property name="text">
+         <string>-</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QPushButton" name="ignoredPlusButton">
+        <property name="text">
+         <string>+</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QListWidget" name="ignoredListWidget"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox_4">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>50</height>
+      </size>
+     </property>
+     <property name="title">
+      <string/>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <property name="topMargin">
+       <number>3</number>
+      </property>
+      <property name="bottomMargin">
+       <number>3</number>
+      </property>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="revertButton">
+        <property name="text">
+         <string>Revert</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="OkButton">
+        <property name="text">
+         <string>Ok</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
    </item>
   </layout>
  </widget>
  <resources/>
  <connections/>
- <buttongroups>
-  <buttongroup name="buttonGroup"/>
- </buttongroups>
 </ui>

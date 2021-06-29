@@ -1,22 +1,20 @@
 import logging
-from PyQt5 import QtWidgets, uic
-import zad.pyuic.mainwindow
+from PyQt5 import QtWidgets, QtCore
+import zad.pyuic.settings
 import zad.models.main
 
 settingsDialog = None
 
 l = logging.getLogger(__name__)
 
-class ZaSettinsDialog(QtWidgets.QMainWindow,zad.pyuic.mainwindow.Ui_mainWindow):
+class ZaSettinsDialog(QtWidgets.QDialog,zad.pyuic.settings.Ui_settingsDialog):
     def __init__(self):
-        super(ZaMainWindow,self).__init__()
+        super(ZaSettinsDialog,self).__init__()
         self.setupUi(self)
 
-
-class ZaSettingsDialog(QDialog):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        uic.loadUi("../Designer/settings.ui", self)
+@QtCore.pyqtSlot()
+def showSettings(self):
+      settingsDialog.show()
 
 def setup():
     global settingsDialog

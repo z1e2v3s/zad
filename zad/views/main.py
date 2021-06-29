@@ -3,18 +3,20 @@ from PyQt5 import QtCore, QtWidgets
 import zad.pyuic.mainwindow
 import zad.models.main
 import zad.models.settings
+import zad.views.settings
 
 mainWindow = None
 
 l = logging.getLogger(__name__)
 
 class ZaMainWindow(QtWidgets.QMainWindow,zad.pyuic.mainwindow.Ui_mainWindow):
+
     def __init__(self, parent=None):
         self.settings = None
 
         super(ZaMainWindow,self).__init__(parent)
         self.setupUi(self)
-        self.connectSignalsSlots()
+        #self.connectActions()
 
     def readSettings(self):
         self.settings: QtCore.QSettings = zad.models.settings.settings
@@ -31,25 +33,23 @@ class ZaMainWindow(QtWidgets.QMainWindow,zad.pyuic.mainwindow.Ui_mainWindow):
     def writeSettings(self):
         self.settings.setValue("geometry", self.saveGeometry())
 
-    def connectSignalsSlots(self):
-        ##self.action_Exit.triggered.connect(self.close)
-        ##self.action_About.triggered.connect(self.about)
-        ##self.action_Settings.triggered.connect(self.about)
-        pass
-
     def exit(self):
         pass
 
     def about(self):
-        QtWidgets.QMessageBox.about(self, "zad - DNS zone adminsitration tool",
-                            "<p>Version {}</p>".format(zad.get_version()))
+        QtWidgets.QMessageBox.about(self, None,
+                "<p>zad - DNS zone adminsitration tool</p><p>Version {}</p>".format(zad.get_version()))
 
+    def connectActions(self):
+        self.actionAbout.triggered.connect(self.about)
+        self.actionSettings.triggered.connect(zad.views.settings.showSettings)
 
 
 def setup():
     global mainWindow
 
     mainWindow = ZaMainWindow()
+    mainWindow.connectActions()
     model = zad.models.main.ZoneModel()
     statusBar = mainWindow.statusbar
     view = mainWindow.maintableView

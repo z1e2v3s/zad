@@ -274,26 +274,32 @@
      <height>22</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuInfo">
+   <widget class="QMenu" name="menuZad">
     <property name="title">
-     <string>Info</string>
+     <string>zad</string>
     </property>
+    <addaction name="actionAbout"/>
+    <addaction name="actionSettings"/>
+    <addaction name="actionZones"/>
    </widget>
-   <widget class="QMenu" name="menuPreferences">
-    <property name="title">
-     <string>Preferences</string>
-    </property>
-   </widget>
-   <widget class="QMenu" name="menuMainwindow">
-    <property name="title">
-     <string>MainWindow</string>
-    </property>
-   </widget>
-   <addaction name="menuInfo"/>
-   <addaction name="menuPreferences"/>
-   <addaction name="menuMainwindow"/>
+   <addaction name="menuZad"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
+   </property>
+  </action>
+  <action name="actionSettings">
+   <property name="text">
+    <string>Settings</string>
+   </property>
+  </action>
+  <action name="actionZones">
+   <property name="text">
+    <string>Zones</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

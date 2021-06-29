@@ -38,6 +38,7 @@ def run():
     init_logging(zad.common.DEFAULT_LOG_PATH)
 
     zad.models.settings.setup()
+    zad.views.settings.setup()
 
     zad.models.main.setup()
     zad.views.main.setup()
