@@ -7,7 +7,7 @@ settingsDialog = None
 
 l = logging.getLogger(__name__)
 
-class ZaSettinsDialog(QtWidgets.QDialog,zad.pyuic.settings.Ui_settingsDialog):
+class ZaSettinsDialog(QtWidgets.QDialog,zad.pyuic.settings.Ui_settingsTabWidget):
     def __init__(self):
         super(ZaSettinsDialog,self).__init__()
         self.setupUi(self)
