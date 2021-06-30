@@ -60,7 +60,7 @@ def setup():
     hh = view.horizontalHeader()
     hh.setStretchLastSection(True)
     hh.setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
-    zad.models.main.loadZones()
+    ##zad.models.main.loadZones()
     ##zad.models.main.loadZones()
     ##zad.models.main.loadZones()
     statusBar.showMessage('Zone loaded')

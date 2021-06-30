@@ -62,12 +62,12 @@ class Zone(object):
             if self.zone_name not in domainZones:
                 domainZones[self.zone_name] = self
             
-        self.z = dns.zone
+        self.z = None
         self.d = [['', '', '', '']]
         self.valid = False
 
     def data(self, row: int, column: int) -> str:
-        if not self.d:
+        if not self.z:
             self.loadZone()          
         v = self.d[row][column]
         if not v: v = ''
@@ -179,14 +179,14 @@ class Zone(object):
         if zad.common.DEBUG: print('createZoneFromName: {} done'.format(fqdn))
 
     def columnCount(self):
-        if len(self.d) < 2:
+        if not self.z:
             self.loadZone()
-        return len(self.d[0])
+        return 4
 
     def rowCount(self):
-        if len(self.d) < 2:
+        if not self.z:
             self.loadZone()
-        return len(self.d)
+        return len(self.z.keys())
 
 class DomainZone(Zone):
     def __init__(self, zone_name):
