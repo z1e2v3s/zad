@@ -1,7 +1,7 @@
 import logging
 import sys
 import time
-import dns.query, dns.resolver, dns.zone, dns.rdataset, dns.rdatatype
+import dns.query, dns.resolver, dns.zone, dns.versioned, dns.rdataset, dns.rdatatype
 import dns.exception
 from PyQt5 import QtCore
 
@@ -75,11 +75,11 @@ class Zone(object):
 
     def loadZone(self):
         row = 0
-
-        l.info('[Loading zone {}, from NS {}]'.format(self.zone_name, zad.common.IP_XFR_NS))
+        self.z =  dns.zone.Zone(self.zone_name, relativize=False)
         for ns in zad.common.IP_XFR_NS:
             try:
-                self.z = dns.zone.from_xfr(dns.query.xfr(ns, self.zone_name))
+                l.info('[Loading zone {} from NS {}]'.format(self.zone_name, ns))
+                dns.query.inbound_xfr(ns, self.z)
                 break
             except dns.xfr.TransferError:
                 l.error('%loadZone: {} AXFR failed with NS={}'.format(self.zone_name, ns))
@@ -91,9 +91,9 @@ class Zone(object):
             self.d = [['', '', '', ''], ['', '', '', '']]
             return
         
-        l.debug('[loadZone: zone={}, loaded with {} RRs'.format(self.zone_name, len(self.z.keys())))
-        for name in self.z.keys():
-            zn = name = str(name)
+        l.debug('[loadZone: zone={}, AXFR of {} nodes done'.format(self.zone_name, len(self.z.keys())))
+        for k in self.z.keys():
+            zn = name = str(k)
             if name == '@': name = ''
             self.d[row][0] = name
             node = self.z[zn]
@@ -109,11 +109,14 @@ class Zone(object):
                             srdata = str(rdata.exchange)
                         self.createZoneFromName(srdatatype, srdata)
                         row = row + 1
-                    self.d.append(['', '', '', ''])
+                        self.d.append(['', '', '', ''])
                     ##l.debug('.', end=' ', flush=True)
                 ##l.debug('+', end=' ', flush=True)
         self.valid = True
-        l.info('[loadZone: zone={} done.]'.format(self.zone_name))
+        l.info('[loadZone: {} RRs out of {} nodes from zone {} loaded.]'.format(
+                                                            row -2,
+                                                            len(self.z.keys()),
+                                                            self.zone_name))
         logZones()
         
 
@@ -179,14 +182,14 @@ class Zone(object):
         if zad.common.DEBUG: print('createZoneFromName: {} done'.format(fqdn))
 
     def columnCount(self):
-        if not self.z:
+        if not self.z :
             self.loadZone()
         return 4
 
     def rowCount(self):
         if not self.z:
             self.loadZone()
-        return len(self.z.keys())
+        return len(self.d) -1       # why -1 ?
 
 class DomainZone(Zone):
     def __init__(self, zone_name):
