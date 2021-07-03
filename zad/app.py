@@ -25,6 +25,8 @@ import zad.models.main
 import zad.views.main
 
 application: QtWidgets.QApplication = None
+event_loop: QtCore.QEventLoop = None
+
 translator: QtCore.QTranslator = None
 locale: QtCore.QLocale = None
 
@@ -50,7 +52,7 @@ def setup():
     global application
 
     application = QtWidgets.QApplication(sys.argv)
-
+    event_loop = QtCore.QEventLoop(application)
 
 def init_translations():
     """

@@ -3,11 +3,13 @@ import sys
 import time
 import dns.query, dns.resolver, dns.zone, dns.versioned, dns.rdataset, dns.rdatatype
 import dns.exception
+import dns.asyncbackend, dns.asyncquery
 from PyQt5 import QtCore
 
 import zad.common
 
 l = logging.getLogger(__name__)
+dns.asyncbackend.set_default_backend('asyncio')
 
 domainZones = {}
 ip4Zones = {}
@@ -73,13 +75,16 @@ class Zone(object):
         if not v: v = ''
         return str(v)
 
-    def loadZone(self):
+    async def do_axfr(self):
+        self.z = dns.asyncquery.inbound_xfr(ns, self.z)
+
+    async def loadZone(self):
         row = 0
         self.z =  dns.zone.Zone(self.zone_name, relativize=False)
         for ns in zad.common.IP_XFR_NS:
             try:
                 l.info('[Loading zone {} from NS {}]'.format(self.zone_name, ns))
-                dns.query.inbound_xfr(ns, self.z)
+                await self.do_axfr()
                 break
             except dns.xfr.TransferError:
                 l.error('%loadZone: {} AXFR failed with NS={}'.format(self.zone_name, ns))
@@ -119,8 +124,10 @@ class Zone(object):
                                                             self.zone_name))
         logZones()
         
+    async def do_zoneName(fqdn):
+        return str(dns.asyncresolver.zone_for_name(fqdn, tcp=True))
 
-    def createZoneFromName(self, dtype, name):
+    async def createZoneFromName(self, dtype, name):
 
         if dtype in ('NS', 'MX', 'CNAME', 'DNAME', 'PTR', 'SRV'):   # a domain fqdn
             if name[-1] == '.':  # already absolute?
@@ -140,7 +147,7 @@ class Zone(object):
         else:                                                       # ignore others
             return
         try:
-            zoneName = str(dns.resolver.zone_for_name(fqdn, tcp=True))
+            zoneName = await self.do_zoneName(fqdn)
             l.debug('createZoneFromName: name={}, fqdn={} OK: zone={}'.format(name, fqdn, zoneName))
         except dns.name.EmptyLabel:
             l.warning('%Empty label: name={}, dtype={}'.format(name, dtype))
@@ -150,7 +157,7 @@ class Zone(object):
             for i in range(zad.common.TIMEOUT_RETRIES):
                 time.sleep(zad.common.TIMEOUT_SLEEP)
                 try:
-                    zoneName = str(dns.resolver.zone_for_name(fqdn, tcp=True))
+                    zoneName = await self.do_zoneName(fqdn)
                 except dns.name.EmptyLabel:
                     l.warning('%Empty label: name={}, dtype={}'.format(name, dtype))
                     return
