@@ -48,6 +48,7 @@ class RunThread(QtCore.QThread):
             asyncio.ensure_future(self.coro_loadZones(self), loop=self.loop)
             ##await self.coro_loadZones
             self.loop.run_forever()
+
         finally:
             print("Disconnect...")
 
@@ -67,6 +68,8 @@ async def do_zoneName(fqdn):
 class Zone(object):
 
     def __init__(self, zone_name):
+        global domainZones,ip4Zones,ip6Zones
+
         self.zone_name = zone_name
         if self.zone_name[-1] != '.':
             self.zone_name += '.'
@@ -96,6 +99,9 @@ class Zone(object):
     async def loadZone(self, runner: RunThread):
         row = 0
         self.z =  dns.zone.Zone(self.zone_name, relativize=False)
+
+        runner.loadDone(self.zone_name)
+
         for ns in zad.common.IP_XFR_NS:
             try:
                 l.info('[Loading zone {} from NS {}]'.format(self.zone_name, ns))
@@ -141,6 +147,7 @@ class Zone(object):
         runner.loadDone(self.zone_name)
 
     async def createZoneFromName(self, dtype, name):
+        global domainZones, ip4Zones, ip6Zones
 
         if dtype in ('NS', 'MX', 'CNAME', 'DNAME', 'PTR', 'SRV'):   # a domain fqdn
             if name[-1] == '.':  # already absolute?
@@ -218,14 +225,24 @@ async def loadZones(runner: RunThread):
     """
     Check for zones which not have been loaded and load them
     """
-    zone_list = []
-    for d in (domainZones, ip4Zones, ip6Zones):
-        for k in d.keys():
-            z = d[k]
-            if len(z.d) < 2:
-                zone_list.append(z)
-    for z in zone_list:
-        await z.loadZone(runner)
+    def find_next_zone():
+        zone_list = []
+        for d in (domainZones, ip4Zones, ip6Zones):
+            for k in d.keys():
+                z = d[k]
+                if len(z.d) < 2:
+                    zone_list.append(z)
+        if zone_list:
+            return zone_list[0]
+        else:
+            return None
+
+    while True:
+        z = find_next_zone()
+        if z:
+            await z.loadZone(runner)
+        else:
+            break
 
 def logZones():
     l.info('[Known Zones:]')
