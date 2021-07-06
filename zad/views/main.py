@@ -8,6 +8,7 @@ import zad.models.settings
 import zad.views.settings
 
 mainWindow = None
+statusBar = None
 
 l = logging.getLogger(__name__)
 
@@ -34,7 +35,7 @@ class ZaMainWindow(QtWidgets.QMainWindow,zad.pyuic.mainwindow.Ui_mainWindow):
 
     @QtCore.pyqtSlot(str)
     def receivefromthread(self, s):
-        print(s)
+        statusBar.showMessage('{} loaded'.format(s))
 
     ##def sendtotask(self):
     ##    self.set_text_signal.emit("Task: Configured")
@@ -67,7 +68,7 @@ class ZaMainWindow(QtWidgets.QMainWindow,zad.pyuic.mainwindow.Ui_mainWindow):
 
 
 def setup():
-    global mainWindow
+    global mainWindow, statusBar
 
     mainWindow = ZaMainWindow()
     mainWindow.connectActions()
@@ -84,7 +85,7 @@ def setup():
     ##zad.models.main.loadZones()
     ##zad.models.main.loadZones()
     ##zad.models.main.loadZones()
-    statusBar.showMessage('Zone loaded')
+    statusBar.showMessage('Loading zones . . .')
     view.setModel(model)
     mainWindow.show()
     l.debug('After mw.show')

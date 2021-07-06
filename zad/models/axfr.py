@@ -5,6 +5,7 @@ import time
 
 import dns.query, dns.resolver, dns.zone, dns.versioned, dns.rdataset, dns.rdatatype
 import dns.exception
+import dns.asyncquery, dns.asyncresolver
 
 from PyQt5 import QtCore
 
@@ -29,6 +30,13 @@ class RunThread(QtCore.QThread):
     def __init__(self, loop: asyncio.AbstractEventLoop, parent=None):
         super(RunThread, self).__init__(parent)
         self.loop = loop
+        self.coro_loadZones = loadZones
+        # create 1st zone
+        z = zad.common.INITIAL_DOMAIN
+        if z[-1] != '.':
+            z += '.'
+        domainZones[z] = Zone(z)
+        ##asyncio.set_event_loop(loop)
 
     @QtCore.pyqtSlot(str)
     def set_text_slot(self, txt):
@@ -37,24 +45,23 @@ class RunThread(QtCore.QThread):
     def work(self):
         #run the event loop
         try:
-            asyncio.ensure_future(self.loadZones(), loop=self.loop)
-            self.zone_loaded.emit('zone loaded')
+            asyncio.ensure_future(self.coro_loadZones(self), loop=self.loop)
+            ##await self.coro_loadZones
             self.loop.run_forever()
         finally:
             print("Disconnect...")
 
-    async def loadZones(self):
-        """
-        Check for zones which not have been loaded and load them
-        """
-        zone_list = []
-        for d in (domainZones, ip4Zones, ip6Zones):
-            for k in d.keys():
-                z = d[k]
-                if len(z.d) < 2:
-                    zone_list.append(z)
-        for z in zone_list:
-            z.loadZone()
+    def loadDone(self, name):
+        self.zone_loaded.emit(name)
+
+
+
+async def do_axfr(ns, z):
+    await dns.asyncquery.inbound_xfr(ns, z)
+
+async def do_zoneName(fqdn):
+    z = await dns.asyncresolver.zone_for_name(fqdn, tcp=True)
+    return str(z)
 
 
 class Zone(object):
@@ -86,16 +93,13 @@ class Zone(object):
         if not v: v = ''
         return str(v)
 
-    async def do_axfr(self, ns):
-        self.z = dns.asyncquery.inbound_xfr(ns, self.z)
-
-    async def loadZone(self):
+    async def loadZone(self, runner: RunThread):
         row = 0
         self.z =  dns.zone.Zone(self.zone_name, relativize=False)
         for ns in zad.common.IP_XFR_NS:
             try:
                 l.info('[Loading zone {} from NS {}]'.format(self.zone_name, ns))
-                await self.do_axfr(ns)
+                await do_axfr(ns, self.z)
                 break
             except dns.xfr.TransferError:
                 l.error('%loadZone: {} AXFR failed with NS={}'.format(self.zone_name, ns))
@@ -123,7 +127,7 @@ class Zone(object):
                         self.d[row][3] = srdata
                         if srdatatype == 'MX':
                             srdata = str(rdata.exchange)
-                        self.createZoneFromName(srdatatype, srdata)
+                        await self.createZoneFromName(srdatatype, srdata)
                         row = row + 1
                         self.d.append(['', '', '', ''])
                     ##l.debug('.', end=' ', flush=True)
@@ -134,9 +138,7 @@ class Zone(object):
                                                             len(self.z.keys()),
                                                             self.zone_name))
         logZones()
-        
-    async def do_zoneName(fqdn):
-        return str(dns.asyncresolver.zone_for_name(fqdn, tcp=True))
+        runner.loadDone(self.zone_name)
 
     async def createZoneFromName(self, dtype, name):
 
@@ -158,7 +160,7 @@ class Zone(object):
         else:                                                       # ignore others
             return
         try:
-            zoneName = await self.do_zoneName(fqdn)
+            zoneName = await do_zoneName(fqdn)
             l.debug('createZoneFromName: name={}, fqdn={} OK: zone={}'.format(name, fqdn, zoneName))
         except dns.name.EmptyLabel:
             l.warning('%Empty label: name={}, dtype={}'.format(name, dtype))
@@ -168,7 +170,7 @@ class Zone(object):
             for i in range(zad.common.TIMEOUT_RETRIES):
                 time.sleep(zad.common.TIMEOUT_SLEEP)
                 try:
-                    zoneName = await self.do_zoneName(fqdn)
+                    zoneName = await do_zoneName(fqdn)
                 except dns.name.EmptyLabel:
                     l.warning('%Empty label: name={}, dtype={}'.format(name, dtype))
                     return
@@ -212,6 +214,18 @@ class Ip6Zone(Zone):
     def __init__(self, zone_name):
         super(Ip6Zone,self).__init__(zone_name)
 
+async def loadZones(runner: RunThread):
+    """
+    Check for zones which not have been loaded and load them
+    """
+    zone_list = []
+    for d in (domainZones, ip4Zones, ip6Zones):
+        for k in d.keys():
+            z = d[k]
+            if len(z.d) < 2:
+                zone_list.append(z)
+    for z in zone_list:
+        await z.loadZone(runner)
 
 def logZones():
     l.info('[Known Zones:]')
