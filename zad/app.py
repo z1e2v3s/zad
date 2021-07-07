@@ -91,9 +91,11 @@ def init_logging(path:str):
 
     file_handler = logging.FileHandler(path)  ##FIXME##
     if zad.common.DEBUG:
-        file_handler.setLevel(logging.DEBUG)
+        ##file_handler.setLevel(logging.DEBUG)
+        logger.setLevel(logging.DEBUG)
     else:
-        file_handler.setLevel(logging.INFO)
+        ##file_handler.setLevel(logging.INFO)
+        logger.setLevel(logging.INFO)
     file_handler.setFormatter(file_formatter)
 
     logger.addHandler(file_handler)
