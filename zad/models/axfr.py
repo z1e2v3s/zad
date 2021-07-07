@@ -25,7 +25,8 @@ ip6Nets = {}
 
 
 class RunThread(QtCore.QThread):
-    zone_loaded = QtCore.pyqtSignal(str)  # loading a zone via axfr completed
+    axfr_message = QtCore.pyqtSignal(str)               # lmessages for status bar
+    zone_loaded_message = QtCore.pyqtSignal(str, str)   # name of dict, name of new zone
 
     def __init__(self, loop: asyncio.AbstractEventLoop, parent=None):
         super(RunThread, self).__init__(parent)
@@ -52,8 +53,8 @@ class RunThread(QtCore.QThread):
         finally:
             print("Disconnect...")
 
-    def loadDone(self, name):
-        self.zone_loaded.emit(name)
+    def send_msg(self, name):
+        self.axfr_message.emit(name)
 
 
 
@@ -100,7 +101,7 @@ class Zone(object):
         row = 0
         self.z =  dns.zone.Zone(self.zone_name, relativize=False)
 
-        runner.loadDone(self.zone_name)
+        runner.send_msg('Loading {} ...'.format(self.zone_name))
 
         for ns in zad.common.IP_XFR_NS:
             try:
@@ -144,7 +145,7 @@ class Zone(object):
                                                             len(self.z.keys()),
                                                             self.zone_name))
         logZones()
-        runner.loadDone(self.zone_name)
+        runner.send_msg('Loading of {} completed with {} RRs'.format(self.zone_name, row -2))
 
     async def createZoneFromName(self, dtype, name):
         global domainZones, ip4Zones, ip6Zones
@@ -241,7 +242,9 @@ async def loadZones(runner: RunThread):
         z = find_next_zone()
         if z:
             await z.loadZone(runner)
+            await asyncio.sleep(5)
         else:
+            runner.send_msg('All zones loaded.')
             break
 
 def logZones():

@@ -8,7 +8,7 @@ import zad.models.settings
 import zad.views.settings
 
 mainWindow = None
-statusBar = None
+statusBar: QtWidgets.QStatusBar = None
 
 l = logging.getLogger(__name__)
 
@@ -16,6 +16,7 @@ class ZaMainWindow(QtWidgets.QMainWindow,zad.pyuic.mainwindow.Ui_mainWindow):
     set_text_signal = QtCore.pyqtSignal(str)
     def __init__(self, parent=None):
         self.settings = None
+        self.previous_status_text = ''
 
         super(ZaMainWindow,self).__init__(parent)
         self.setupUi(self)
@@ -23,19 +24,23 @@ class ZaMainWindow(QtWidgets.QMainWindow,zad.pyuic.mainwindow.Ui_mainWindow):
 
     def startThread(self):
         loop = asyncio.get_event_loop()
-        self.asyciothread = zad.models.axfr.RunThread(loop)
+        self.asynciothread = zad.models.axfr.RunThread(loop)
         self.thread = QtCore.QThread()
-        self.asyciothread.moveToThread(self.thread)
+        self.asynciothread.moveToThread(self.thread)
 
-        self.set_text_signal.connect(self.asyciothread.set_text_slot)
-        self.asyciothread.zone_loaded.connect(self.receivefromthread)
-        self.thread.started.connect(self.asyciothread.work)
+        self.set_text_signal.connect(self.asynciothread.set_text_slot)
+        self.asynciothread.axfr_message.connect(self.receive_message_from_thread)
+        self.thread.started.connect(self.asynciothread.work)
 
         self.thread.start()
 
     @QtCore.pyqtSlot(str)
-    def receivefromthread(self, s):
-        statusBar.showMessage('{} loaded'.format(s))
+    def receive_message_from_thread(self, s):
+        statusBar.showMessage('{}{}{}'.format(
+            self.previous_status_text,
+            ' --- ' if self.previous_status_text else '',
+            s))
+        self.previous_status_text = s
 
     ##def sendtotask(self):
     ##    self.set_text_signal.emit("Task: Configured")
@@ -85,7 +90,6 @@ def setup():
     ##zad.models.main.loadZones()
     ##zad.models.main.loadZones()
     ##zad.models.main.loadZones()
-    statusBar.showMessage('Loading zones . . .')
     view.setModel(model)
     mainWindow.show()
     l.debug('After mw.show')

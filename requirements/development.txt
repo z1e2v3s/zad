@@ -1,2 +1,4 @@
 build>=0.5.1
 qt5-applications==5.15.2.2.2
+# PyCharm likes this:
+PyQt5-stubs==5.15.2.0
