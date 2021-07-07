@@ -69,8 +69,11 @@ def init_translations():
 def init_logging(path:str):
     # info, warning and error goes to file and to console if DEBUG set
     # debug goes to console only (if DEBUG set)
+    # Debugging threaded code suppresses console messages: Move to log
     
+
     logger = logging.getLogger()
+    """
     if zad.common.DEBUG:
         stdout_formatter = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
         
@@ -82,12 +85,15 @@ def init_logging(path:str):
 
     else:
         logger.setLevel(logging.INFO)
-            
+   """
     file_formatter = logging.Formatter('%(asctime)s %(name)s - %(levelname)s - %(message)s', 
                               '%m-%d-%Y %H:%M:%S')
 
     file_handler = logging.FileHandler(path)  ##FIXME##
-    file_handler.setLevel(logging.INFO)
+    if zad.common.DEBUG:
+        file_handler.setLevel(logging.DEBUG)
+    else:
+        file_handler.setLevel(logging.INFO)
     file_handler.setFormatter(file_formatter)
 
     logger.addHandler(file_handler)
