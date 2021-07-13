@@ -2,6 +2,7 @@ import logging
 from PyQt5 import QtCore, QtWidgets
 
 import zad.models.axfr
+import zad.models.main
 import zad.views.main
 
 mw = None
@@ -21,17 +22,16 @@ class ZoneView(QtCore.QObject):
     def __init__(self,
                  zoneBox: QtWidgets.QComboBox,
                  netBox: QtWidgets.QComboBox,
-                 table: QtWidgets.QTableView,
+                 tabView: QtWidgets.QTableView,
                  parent=None):
         super(ZoneView, self).__init__(parent)
 
         self.zoneBox: QtWidgets.QComboBox = zoneBox
-        ##self.zoneBox.insertPolicy = QtWidgets.QComboBox.InsertPolicy.InsertAlphabetically
         self.netBox: QtWidgets.QComboBox = netBox
-        ##self.netBox.insertPolicy = QtWidgets.QComboBox.InsertPolicy.InsertAlphabetically
-        self.table = table
+        self.tabView = tabView
         self.zoneBoxNames = []
         self.netBoxNames = []
+        self.init_tabView()
         self.connect_signals()
 
     @QtCore.pyqtSlot(str)
@@ -52,7 +52,19 @@ class ZoneView(QtCore.QObject):
             self.zoneBox.setCurrentIndex(i)
 
     def reload_table(self, zone_name):
-        pass
+        zone = zad.models.axfr.Zone.zoneByName(zone_name)
+        model = zad.models.main.ZoneModel(zone.d)
+        self.tabView.setModel(model)
+        
+    def init_tabView(self):
+        self.tabView.setColumnWidth(0, 200)
+        self.tabView.setColumnWidth(0, 200)
+        self.tabView.setColumnWidth(1, 40)
+        self.tabView.setColumnWidth(2, 40)
+        self.tabView.setColumnWidth(3, 400)
+        hh = self.tabView.horizontalHeader()
+        hh.setStretchLastSection(True)
+        hh.setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
 
     def connect_signals(self):
         self.zoneBox.currentTextChanged.connect(self.zoneBoxSelectionChanged)

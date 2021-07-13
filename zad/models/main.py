@@ -40,7 +40,7 @@ class ZoneModel(QtCore.QAbstractTableModel):
     def data(self, index: QtCore.QModelIndex, role: int):
         if role == QtCore.Qt.DisplayRole:
             row = index.row()
-            col = index.column()
+            column = index.column()
             v = self.vrrs[row][column]
             if not v:
                 v = ''

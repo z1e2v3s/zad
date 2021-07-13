@@ -84,20 +84,7 @@ def setup():
 
     mainWindow = ZaMainWindow()
     mainWindow.connectActions()
-    model = zad.models.main.ZoneModel()
     statusBar = mainWindow.statusbar
-    view = mainWindow.maintableView
-    view.setColumnWidth(0, 200)
-    view.setColumnWidth(1, 40)
-    view.setColumnWidth(2, 40)
-    view.setColumnWidth(3, 400)
-    hh = view.horizontalHeader()
-    hh.setStretchLastSection(True)
-    hh.setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
-    ##zad.models.main.loadZones()
-    ##zad.models.main.loadZones()
-    ##zad.models.main.loadZones()
-    view.setModel(model)
     mainWindow.show()
     l.debug('After mw.show')
     return

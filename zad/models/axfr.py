@@ -71,6 +71,15 @@ async def do_zoneName(fqdn):
 
 class Zone(object):
 
+    def zoneByName(zone_name):
+        if zone_name.endswith('ip6.arpa.'):
+            return ip6Zones[zone_name]
+        elif zone_name.endswith('in-addr.arpa.'):
+            return ip4Zones[zone_name]
+        else:
+            return domainZones[zone_name]
+    
+    
     def __init__(self, zone_name):
         global domainZones,ip4Zones,ip6Zones
 
