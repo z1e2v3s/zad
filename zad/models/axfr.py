@@ -25,8 +25,8 @@ ip6Nets = {}
 
 
 class RunThread(QtCore.QThread):
-    axfr_message = QtCore.pyqtSignal(str)               # lmessages for status bar
-    zone_loaded_message = QtCore.pyqtSignal(str, str)   # name of dict, name of new zone
+    axfr_message = QtCore.pyqtSignal(str)           # lmessages for status bar
+    zone_loaded_message = QtCore.pyqtSignal(str)    # zone fqdn
 
     def __init__(self, loop: asyncio.AbstractEventLoop, parent=None):
         super(RunThread, self).__init__(parent)
@@ -56,6 +56,9 @@ class RunThread(QtCore.QThread):
     def send_msg(self, name):
         self.axfr_message.emit(name)
 
+    def send_zone_loaded(self, name):
+        self.zone_loaded_message.emit(name)
+
 
 
 async def do_axfr(ns, z):
@@ -74,6 +77,7 @@ class Zone(object):
         self.zone_name = zone_name
         if self.zone_name[-1] != '.':
             self.zone_name += '.'
+        self.zone_type: zad.common.ZoneTypes = None
         
         # add ourselves to globale zone list
         if self.zone_name.endswith('ip6.arpa.'):
@@ -146,6 +150,7 @@ class Zone(object):
                                                             self.zone_name))
         logZones()
         runner.send_msg('Loading of {} completed with {} RRs'.format(self.zone_name, row -2))
+        runner.send_zone_loaded(self.zone_name)
 
     async def createZoneFromName(self, dtype, name):
         global domainZones, ip4Zones, ip6Zones
@@ -213,14 +218,18 @@ class Zone(object):
 class DomainZone(Zone):
     def __init__(self, zone_name):
         super(DomainZone,self).__init__(zone_name)
-
+        self.zone_type: zad.common.ZoneTypes = zad.common.ZoneTypes.domainZone
+        
 class Ip4Zone(Zone):
     def __init__(self, zone_name):
         super(Ip4Zone,self).__init__(zone_name)
+        self.zone_type: zad.common.ZoneTypes = zad.common.ZoneTypes.ip4Zone
 
 class Ip6Zone(Zone):
     def __init__(self, zone_name):
         super(Ip6Zone,self).__init__(zone_name)
+        self.zone_type: zad.common.ZoneTypes = zad.common.ZoneTypes.ip6Zone
+
 
 async def loadZones(runner: RunThread):
     """
@@ -232,7 +241,7 @@ async def loadZones(runner: RunThread):
             for k in d.keys():
                 z = d[k]
                 if len(z.d) < 2:
-                    zone_list.append(z)
+                    zone_list.append((z))
         if zone_list:
             return zone_list[0]
         else:

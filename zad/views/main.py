@@ -6,6 +6,7 @@ import zad.models.axfr
 import zad.models.main
 import zad.models.settings
 import zad.views.settings
+import zad.views.tables
 
 mainWindow = None
 statusBar: QtWidgets.QStatusBar = None
@@ -20,6 +21,7 @@ class ZaMainWindow(QtWidgets.QMainWindow,zad.pyuic.mainwindow.Ui_mainWindow):
 
         super(ZaMainWindow,self).__init__(parent)
         self.setupUi(self)
+        zad.views.tables.setup(self)
         self.startThread()
 
     def startThread(self):
@@ -29,24 +31,29 @@ class ZaMainWindow(QtWidgets.QMainWindow,zad.pyuic.mainwindow.Ui_mainWindow):
         self.asynciothread.moveToThread(self.thread)
 
         self.set_text_signal.connect(self.asynciothread.set_text_slot)
-        self.asynciothread.axfr_message.connect(self.receive_message_from_thread)
+        self.asynciothread.axfr_message.connect(self.receive_status_bar_message)
+        self.asynciothread.zone_loaded_message.connect(self.receive_zone_loaded_message)
         self.thread.started.connect(self.asynciothread.work)
 
         self.thread.start()
 
     @QtCore.pyqtSlot(str)
-    def receive_message_from_thread(self, s):
+    def receive_status_bar_message(self, msg):
         statusBar.showMessage('{}{}{}'.format(
             self.previous_status_text,
             ' --- ' if self.previous_status_text else '',
-            s))
-        self.previous_status_text = s
+            msg))
+        self.previous_status_text = msg
 
+    @QtCore.pyqtSlot(str)
+    def receive_zone_loaded_message(self, zone_name):
+        return zad.views.tables.zone_loaded(zone_name)
+        
     ##def sendtotask(self):
     ##    self.set_text_signal.emit("Task: Configured")
 
     def readSettings(self):
-        self.settings: QtCore.QSettings = zad.models.settings.settings
+        
         geometry: QtCore.QByteArray = self.settings.value("geometry",
                                                           QtCore.QByteArray()).toByteArray()
         if not geometry:

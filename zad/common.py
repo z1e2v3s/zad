@@ -17,6 +17,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from enum import Enum
+
 
 DEBUG = False
 
@@ -36,3 +38,18 @@ TIMEOUT_SLEEP = 5
 
 windowHeading = 'za - DNS zone admin'
 app_name = 'zad'
+
+
+# Zone and net storage
+
+class ZoneTypes(Enum):
+    domainZone = 1
+    ip4Zone = 2
+    ip6Zone = 3
+
+
+class SubnetTypes(Enum):
+    subdomain = 1
+    ip4Net = 2
+    ip6Net = 3
+
