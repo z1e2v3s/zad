@@ -48,14 +48,14 @@ class ZoneView(QtCore.QObject):
         self.zoneBox.clear()
         self.zoneBox.addItems(self.zoneBoxNames)
         if ct:
-            i = self.zoneBox.findData(ct)
-            self.zoneBox.setCurrentIndex(i)
+            self.zoneBox.setCurrentText(ct)
 
     def reload_table(self, zone_name):
         zone = zad.models.axfr.Zone.zoneByName(zone_name)
         model = zad.models.main.ZoneModel(zone.d)
         self.tabView.setModel(model)
-        
+        self.zoneBox.setCurrentText(zone_name)
+
     def init_tabView(self):
         self.tabView.setColumnWidth(0, 200)
         self.tabView.setColumnWidth(0, 200)
