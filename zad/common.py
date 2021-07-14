@@ -40,13 +40,6 @@ windowHeading = 'za - DNS zone admin'
 app_name = 'zad'
 
 
-# Zone and net storage
-
-class ZoneTypes(Enum):
-    domainZone = 1
-    ip4Zone = 2
-    ip6Zone = 3
-
 
 class SubnetTypes(Enum):
     subdomain = 1

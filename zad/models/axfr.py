@@ -36,8 +36,7 @@ class RunThread(QtCore.QThread):
         z = zad.common.INITIAL_DOMAIN
         if z[-1] != '.':
             z += '.'
-        domainZones[z] = Zone(z)
-        ##asyncio.set_event_loop(loop)
+        domainZones[z] = DomainZone(z)
 
     @QtCore.pyqtSlot(str)
     def set_text_slot(self, txt):
@@ -83,6 +82,9 @@ class Zone(object):
     def __init__(self, zone_name):
         global domainZones,ip4Zones,ip6Zones
 
+        error = self.init_by_subclass   # bail out if not created as subclass
+            
+        
         self.zone_name = zone_name
         if self.zone_name[-1] != '.':
             self.zone_name += '.'
@@ -90,14 +92,11 @@ class Zone(object):
         
         # add ourselves to globale zone list
         if self.zone_name.endswith('ip6.arpa.'):
-            if self.zone_name not in ip6Zones:
-                ip6Zones[self.zone_name] = self
+            ip6Zones[self.zone_name] = self
         elif self.zone_name.endswith('in-addr.arpa.'):
-            if self.zone_name not in ip4Zones:
-                ip4Zones[self.zone_name] = self
+            ip4Zones[self.zone_name] = self
         else:
-            if self.zone_name not in domainZones:
-                domainZones[self.zone_name] = self
+            domainZones[self.zone_name] = self
             
         self.z = None
         self.d = [['', '', '', '']]
@@ -226,18 +225,19 @@ class Zone(object):
 
 class DomainZone(Zone):
     def __init__(self, zone_name):
-        super(DomainZone,self).__init__(zone_name)
-        self.zone_type: zad.common.ZoneTypes = zad.common.ZoneTypes.domainZone
-        
+        self.init_by_subclass = True
+        super(DomainZone, self).__init__(zone_name)
+
+
 class Ip4Zone(Zone):
     def __init__(self, zone_name):
+        self.init_by_subclass = True
         super(Ip4Zone,self).__init__(zone_name)
-        self.zone_type: zad.common.ZoneTypes = zad.common.ZoneTypes.ip4Zone
 
 class Ip6Zone(Zone):
     def __init__(self, zone_name):
+        self.init_by_subclass = True
         super(Ip6Zone,self).__init__(zone_name)
-        self.zone_type: zad.common.ZoneTypes = zad.common.ZoneTypes.ip6Zone
 
 
 async def loadZones(runner: RunThread):

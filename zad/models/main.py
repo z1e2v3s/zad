@@ -21,7 +21,37 @@ ip6Nets = {}
 
 class ZoneModel(QtCore.QAbstractTableModel):
     def __init__(self, data=[[]], parent=None):
-        super().__init__(parent)
+        super(ZoneModel, self).__init__(parent)
+        self.vrrs: [[str,str,str]] = data
+
+    def headerData(self, section: int, orientation: QtCore.Qt.Orientation, role: int):
+        if role == QtCore.Qt.DisplayRole:
+            if orientation == QtCore.Qt.Horizontal:
+                return ['OwnerName', 'Type', 'Rdata'][section]
+            else:
+                return None
+
+    def columnCount(self, parent=None):
+        return 3
+
+    def rowCount(self, parent=None):
+        return len(self.vrrs) -1
+
+    def data(self, index: QtCore.QModelIndex, role: int):
+        if role == QtCore.Qt.DisplayRole:
+            row = index.row()
+            column = index.column()
+            if column > 0:
+                column += 1
+            v = self.vrrs[row][column]
+            if not v:
+                v = ''
+            return str(v)
+
+
+class EditZoneModel(ZoneModel):
+    def __init__(self, data=[[]], parent=None):
+        super(EditZoneModel, self).__init__(parent)
         self.vrrs: [[str,str,str,str]] = data
 
     def headerData(self, section: int, orientation: QtCore.Qt.Orientation, role: int):
@@ -34,9 +64,6 @@ class ZoneModel(QtCore.QAbstractTableModel):
     def columnCount(self, parent=None):
         return 4
 
-    def rowCount(self, parent=None):
-        return len(self.vrrs) -1
-
     def data(self, index: QtCore.QModelIndex, role: int):
         if role == QtCore.Qt.DisplayRole:
             row = index.row()
@@ -45,21 +72,3 @@ class ZoneModel(QtCore.QAbstractTableModel):
             if not v:
                 v = ''
             return str(v)
-
-
-class DomainZoneModel(QtCore.QAbstractTableModel):
-    def __init__(self, data=[[]], parent=None):
-        super(DomainZoneModel).__init__(parent)
-        self.vrrs: [[str,str,str,str]] = data
-
-class IP4ZoneModel(QtCore.QAbstractTableModel):
-    def __init__(self, data=[[]], parent=None):
-        super(IP4ZoneModel).__init__(parent)
-        self.vrrs: [[str,str,str,str]] = data
-
-class IP6ZoneModel(QtCore.QAbstractTableModel):
-    def __init__(self, data=[[]], parent=None):
-        super(IP6ZoneModel).__init__(parent)
-        self.vrrs: [[str,str,str,str]] = data
-
-

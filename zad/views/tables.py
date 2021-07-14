@@ -57,11 +57,9 @@ class ZoneView(QtCore.QObject):
         self.zoneBox.setCurrentText(zone_name)
 
     def init_tabView(self):
-        self.tabView.setColumnWidth(0, 200)
-        self.tabView.setColumnWidth(0, 200)
+        self.tabView.setColumnWidth(0, 100)
         self.tabView.setColumnWidth(1, 40)
-        self.tabView.setColumnWidth(2, 40)
-        self.tabView.setColumnWidth(3, 400)
+        self.tabView.setColumnWidth(2, 100)
         hh = self.tabView.horizontalHeader()
         hh.setStretchLastSection(True)
         hh.setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
@@ -72,7 +70,36 @@ class ZoneView(QtCore.QObject):
 
 
 class ZoneEdit(ZoneView):
-    pass
+
+    def __init__(self,
+                 zoneBox: QtWidgets.QComboBox,
+                 netBox: QtWidgets.QComboBox,
+                 tabView: QtWidgets.QTableView,
+                 parent=None):
+        super(ZoneView, self).__init__(parent)
+
+        self.zoneBox: QtWidgets.QComboBox = zoneBox
+        self.netBox: QtWidgets.QComboBox = netBox
+        self.tabView = tabView
+        self.zoneBoxNames = []
+        self.netBoxNames = []
+        self.init_tabView()
+        self.connect_signals()
+
+    def reload_table(self, zone_name):
+        zone = zad.models.axfr.Zone.zoneByName(zone_name)
+        model = zad.models.main.EditZoneModel(zone.d)
+        self.tabView.setModel(model)
+        self.zoneBox.setCurrentText(zone_name)
+
+    def init_tabView(self):
+        self.tabView.setColumnWidth(0, 100)
+        self.tabView.setColumnWidth(1, 40)
+        self.tabView.setColumnWidth(2, 40)
+        self.tabView.setColumnWidth(3, 400)
+        hh = self.tabView.horizontalHeader()
+        hh.setStretchLastSection(True)
+        hh.setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
 
 
 
@@ -84,13 +111,6 @@ def zone_loaded(zone_name):
     """
     global mw, edit_zone_view, zone_view_1, zone_view_2, zone_view_3
 
-    zone: zad.models.axfr.Zone = None
-    if zone_name.endswith('ip6.arpa.'):
-        zone = zad.models.axfr.ip6Zones[zone_name]
-    elif zone_name.endswith('in-addr.arpa.'):
-        zone = zad.models.axfr.ip4Zones[zone_name]
-    else: zone = zad.models.axfr.domainZones[zone_name]
-   
     if not edit_zone_view:
         edit_zone_view = ZoneEdit(mw.comboBoxMainZone,
                                   mw.comboBoxMainSub,
@@ -108,7 +128,10 @@ def zone_loaded(zone_name):
                                mw.comboBoxSub_3,
                                mw.tableView_3)
     
-    for v in (edit_zone_view, zone_view_1, zone_view_2, zone_view_3):
-        v.addZone(zone_name)
-
-    
+    edit_zone_view.addZone(zone_name)
+    z: zad.models.axfr.Zone = zad.models.axfr.Zone.zoneByName(zone_name)
+    if zone_name.endswith('ip6.arpa.'):
+        zone_view_3.addZone(zone_name)
+    elif zone_name.endswith('in-addr.arpa.'):
+        zone_view_2.addZone(zone_name)
+    else: zone_view_1.addZone(zone_name)
