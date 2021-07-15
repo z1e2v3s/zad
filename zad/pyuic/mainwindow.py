@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_mainWindow(object):
     def setupUi(self, mainWindow):
         mainWindow.setObjectName("mainWindow")
-        mainWindow.resize(1068, 840)
+        mainWindow.resize(1081, 812)
         mainWindow.setSizeIncrement(QtCore.QSize(10, 10))
         self.centralwidget = QtWidgets.QWidget(mainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -161,7 +161,7 @@ class Ui_mainWindow(object):
         self.verticalLayout_3.addWidget(self.splitter_0)
         mainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(mainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1068, 22))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1081, 22))
         self.menubar.setObjectName("menubar")
         self.menuZad = QtWidgets.QMenu(self.menubar)
         self.menuZad.setObjectName("menuZad")
@@ -186,13 +186,13 @@ class Ui_mainWindow(object):
     def retranslateUi(self, mainWindow):
         _translate = QtCore.QCoreApplication.translate
         mainWindow.setWindowTitle(_translate("mainWindow", "MainWindow"))
-        self.box1.setTitle(_translate("mainWindow", "Zone 1"))
-        self.box2.setTitle(_translate("mainWindow", "Zone 2"))
-        self.box3.setTitle(_translate("mainWindow", "Zone 3"))
-        self.mainBox.setTitle(_translate("mainWindow", "MainZone"))
+        self.box1.setTitle(_translate("mainWindow", "Domain-Zone"))
+        self.box2.setTitle(_translate("mainWindow", "IPv4-Zone"))
+        self.box3.setTitle(_translate("mainWindow", "IPv6-Zone"))
+        self.mainBox.setTitle(_translate("mainWindow", "Edit-Zone"))
         self.buttonM.setText(_translate("mainWindow", "-"))
         self.buttonP.setText(_translate("mainWindow", "+"))
-        self.editBox.setTitle(_translate("mainWindow", "EditBox"))
+        self.editBox.setTitle(_translate("mainWindow", "Editor"))
         self.nameAddressLabel.setText(_translate("mainWindow", "Name/Address"))
         self.ttlLabel.setText(_translate("mainWindow", "TTL"))
         self.typeLabel.setText(_translate("mainWindow", "Type"))
