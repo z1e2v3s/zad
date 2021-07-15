@@ -104,7 +104,15 @@ class ZoneEdit(ZoneView):
 
     @QtCore.pyqtSlot(QtCore.QModelIndex)
     def tableRowSelected_slot(self, index):
-        self.selfSelected(self.zone_name, self.zone_type, index.row)
+        model = self.tabView.model()
+        i = model.createIndex(index.row(),0)
+        mw.nameAddressEdit.setText(model.data(i, QtCore.Qt.DisplayRole))
+        i = model.createIndex(index.row(), 1)
+        mw.ttlEdit.setText(model.data(i, QtCore.Qt.DisplayRole))
+        i = model.createIndex(index.row(),2)
+        mw.typeEdit.setText(model.data(i, QtCore.Qt.DisplayRole))
+        i = model.createIndex(index.row(),3)
+        mw.rdataEdit.setText(model.data(i, QtCore.Qt.DisplayRole))
 
     def otherDoubleClicked(self, zone_name, zone_type, row):
         pass
