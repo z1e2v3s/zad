@@ -226,17 +226,20 @@ class Zone(object):
 class DomainZone(Zone):
     def __init__(self, zone_name):
         self.init_by_subclass = True
+        self.type = zad.common.ZTDOM
         super(DomainZone, self).__init__(zone_name)
 
 
 class Ip4Zone(Zone):
     def __init__(self, zone_name):
         self.init_by_subclass = True
+        self.type = zad.common.ZTIP4
         super(Ip4Zone,self).__init__(zone_name)
 
 class Ip6Zone(Zone):
     def __init__(self, zone_name):
         self.init_by_subclass = True
+        self.type = zad.common.ZTIP6
         super(Ip6Zone,self).__init__(zone_name)
 
 

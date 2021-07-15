@@ -39,9 +39,11 @@ TIMEOUT_SLEEP = 5
 windowHeading = 'za - DNS zone admin'
 app_name = 'zad'
 
+ZTIP4 = 4
+ZTIP6 = 6
+ZTDOM = 1
 
-
-class SubnetTypes(Enum):
+class SubnetType(Enum):
     subdomain = 1
     ip4Net = 2
     ip6Net = 3

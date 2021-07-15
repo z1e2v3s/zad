@@ -1,9 +1,12 @@
 import logging
 from PyQt5 import QtCore, QtWidgets
 
+import zad.common
 import zad.models.axfr
 import zad.models.main
 import zad.views.main
+
+l = logging.getLogger(__name__)
 
 mw = None
 
@@ -39,7 +42,12 @@ class ZoneView(QtCore.QObject):
         if zone_name:
             self.reload_table(zone_name)
 
-    def addZone(self, zone_name):
+    @QtCore.pyqtSlot(QtCore.QModelIndex)
+    def tableRowDoubleClicked_slot(self, index):
+        edit_zone_view.otherDoubleClicked(self.zone_name, self.zone_type, index.row)
+
+    def addZone(self, zone_name, zone_type):
+        self.zone_type = zone_type
         self.zoneBoxNames.append(zone_name)
         self.zoneBoxNames.sort()
         ct = None
@@ -51,10 +59,12 @@ class ZoneView(QtCore.QObject):
             self.zoneBox.setCurrentText(ct)
 
     def reload_table(self, zone_name):
-        zone = zad.models.axfr.Zone.zoneByName(zone_name)
+        zone: zad.models.axfr.Zone = zad.models.axfr.Zone.zoneByName(zone_name)
         model = zad.models.main.ZoneModel(zone.d)
         self.tabView.setModel(model)
         self.zoneBox.setCurrentText(zone_name)
+        self.zone_name = zone_name
+        self.zone_type = zone.type
 
     def init_tabView(self):
         self.tabView.setColumnWidth(0, 100)
@@ -66,6 +76,7 @@ class ZoneView(QtCore.QObject):
 
     def connect_signals(self):
         self.zoneBox.currentTextChanged.connect(self.zoneBoxSelectionChanged)
+        self.tabView.doubleClicked.connect(self.tableRowDoubleClicked_slot)
 
 
 
@@ -86,11 +97,28 @@ class ZoneEdit(ZoneView):
         self.init_tabView()
         self.connect_signals()
 
+    @QtCore.pyqtSlot(str)
+    def zoneBoxSelectionChanged(self, zone_name: str):
+        if zone_name:
+            self.reload_table(zone_name)
+
+    @QtCore.pyqtSlot(QtCore.QModelIndex)
+    def tableRowSelected_slot(self, index):
+        self.selfSelected(self.zone_name, self.zone_type, index.row)
+
+    def otherDoubleClicked(self, zone_name, zone_type, row):
+        pass
+
+    def selfSelected(self, zone_name, zone_type, row):
+        pass
+
     def reload_table(self, zone_name):
         zone = zad.models.axfr.Zone.zoneByName(zone_name)
         model = zad.models.main.EditZoneModel(zone.d)
         self.tabView.setModel(model)
         self.zoneBox.setCurrentText(zone_name)
+        self.zone_name = zone_name
+        self.zone_type = zone.type
 
     def init_tabView(self):
         self.tabView.setColumnWidth(0, 100)
@@ -101,6 +129,9 @@ class ZoneEdit(ZoneView):
         hh.setStretchLastSection(True)
         hh.setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
 
+    def connect_signals(self):
+        self.zoneBox.currentTextChanged.connect(self.zoneBoxSelectionChanged)
+        self.tabView.clicked.connect(self.tableRowSelected_slot)
 
 
 
@@ -128,10 +159,11 @@ def zone_loaded(zone_name):
                                mw.comboBoxSub_3,
                                mw.tableView_3)
     
-    edit_zone_view.addZone(zone_name)
     z: zad.models.axfr.Zone = zad.models.axfr.Zone.zoneByName(zone_name)
-    if zone_name.endswith('ip6.arpa.'):
-        zone_view_3.addZone(zone_name)
-    elif zone_name.endswith('in-addr.arpa.'):
-        zone_view_2.addZone(zone_name)
-    else: zone_view_1.addZone(zone_name)
+    edit_zone_view.addZone(zone_name, z.type)
+    if z.type == zad.common.ZTIP6:
+        zone_view_3.addZone(zone_name, z.type)
+    elif z.type == zad.common.ZTIP4:
+        zone_view_2.addZone(zone_name, z.type)
+    elif z.type == zad.common.ZTDOM:
+        zone_view_1.addZone(zone_name, z.type)
