@@ -16,7 +16,6 @@ l = logging.getLogger(__name__)
 class ZaMainWindow(QtWidgets.QMainWindow,zad.pyuic.mainwindow.Ui_mainWindow):
     set_text_signal = QtCore.pyqtSignal(str)
     def __init__(self, parent=None):
-        self.settings = None
         self.previous_status_text = ''
 
         super(ZaMainWindow,self).__init__(parent)
@@ -52,9 +51,13 @@ class ZaMainWindow(QtWidgets.QMainWindow,zad.pyuic.mainwindow.Ui_mainWindow):
     ##def sendtotask(self):
     ##    self.set_text_signal.emit("Task: Configured")
 
+    def closeEvent(self, event: QtCore.QEvent):
+        self.writeSettings()
+        event.accept()
+        del zad.models.settings.settings
+
     def readSettings(self):
-        
-        geometry: QtCore.QByteArray = self.settings.value("geometry",
+        geometry: QtCore.QByteArray = zad.models.value("geometry",
                                                           QtCore.QByteArray()).toByteArray()
         if not geometry:
             availableGeometry: QtCore.QRect = self.screen.availableGeometry()
@@ -65,7 +68,7 @@ class ZaMainWindow(QtWidgets.QMainWindow,zad.pyuic.mainwindow.Ui_mainWindow):
             self.restoreGeometry(geometry)
 
     def writeSettings(self):
-        self.settings.setValue("geometry", self.saveGeometry())
+        zad.models.settings.settings.setValue("geometry", self.saveGeometry())
 
     def exit(self):
         pass

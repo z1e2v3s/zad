@@ -18,7 +18,9 @@ class SettingsModel(QtCore.QAbstractListModel):
 
 
 def setup():
-    QtCore.QCoreApplication.setOrganizationName("chaos1.de");
+    global settings
+    QtCore.QCoreApplication.setOrganizationName("chaos1");
+    QtCore.QCoreApplication.setOrganizationDomain("chaos1.de");
     QtCore.QCoreApplication.setApplicationName("zad");
     QtCore.QCoreApplication.setApplicationVersion(zad.get_version());
 
