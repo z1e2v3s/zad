@@ -52,10 +52,10 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://codeberg.org/ajr/zad",
-    project_urls = [
-        "Bug Tracker = https://codeberg.org/ajr/zad/issues",
-        "Documentation = https://codeberg.org/ajr/zad/issues"
-    ],
+    project_urls={
+        "Bug Tracker": "https://codeberg.org/ajr/zad/issues",
+        "Documentation": "https://codeberg.org/ajr/zad/issues"
+    },
     author=zad.get_author(),
     author_email=zad.get_author_email(),
     classifiers=[
@@ -68,7 +68,7 @@ setup(
         "Topic :: Internet :: Name Service (DNS)"
     ],
     packages=["zad"],
-    install_requires=resolve_requires("requirements/basic.txt"),
+    install_requires=resolve_requires("requirements/base.txt"),
     entry_points={
         'console_scripts': [
             "zad = zad.app:run",
