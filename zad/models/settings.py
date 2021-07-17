@@ -16,6 +16,19 @@ class SettingsModel(QtCore.QAbstractListModel):
     def __init__(self, parent=None):
         super().__init__(parent)
 
+        masterServer = None                         # masterServerLineEdit
+        ddnsKeyFile = None                          # ddnsKeyFileLineEdit
+        nsForAxfr = '2001:4bd8:0:104:217:17:192:66' # serverForZoneTransferLineEdit
+        initialDomain = 'iks-jena.de'               # initialDomainLineEdit
+        defaultIp4Prefix = 24                       # defaultPrefixIPv4LineEdit
+        defaultIp6Prefix = 64                       # defaultPrefixIPv6LineEdit
+        logFile = '/tmp/zad.log'                    # logfileLineEdit
+        ip4Nets = []                                # iPv4ListWidget
+        ip6Nets = []                                # iPv6ListWidget
+        ignoredNets = []                            # ignoredListWidget
+
+
+
 
 def setup():
     global settings

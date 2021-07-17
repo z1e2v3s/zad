@@ -57,7 +57,7 @@ class ZaMainWindow(QtWidgets.QMainWindow,zad.pyuic.mainwindow.Ui_mainWindow):
         del zad.models.settings.settings
 
     def readSettings(self):
-        geometry: QtCore.QByteArray = zad.models.value("geometry",
+        geometry: QtCore.QByteArray = zad.models.settings.settings.value("geometry",
                                                           QtCore.QByteArray()).toByteArray()
         if not geometry:
             availableGeometry: QtCore.QRect = self.screen.availableGeometry()
