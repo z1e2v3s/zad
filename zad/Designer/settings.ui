@@ -23,7 +23,7 @@
       <enum>QTabWidget::Triangular</enum>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>3</number>
      </property>
      <property name="elideMode">
       <enum>Qt::ElideNone</enum>
@@ -531,14 +531,14 @@
            </spacer>
           </item>
           <item>
-           <widget class="QPushButton" name="revertButton_18">
+           <widget class="QPushButton" name="ignoredRevertButton">
             <property name="text">
              <string>Revert</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="OkButton_18">
+           <widget class="QPushButton" name="ignoredOkButton">
             <property name="text">
              <string>Ok</string>
             </property>
