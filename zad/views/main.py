@@ -54,10 +54,10 @@ class ZaMainWindow(QtWidgets.QMainWindow,zad.pyuic.mainwindow.Ui_mainWindow):
     def closeEvent(self, event: QtCore.QEvent):
         self.writeSettings()
         event.accept()
-        del zad.models.settings.settings
+        del zad.models.settings.conf
 
     def readSettings(self):
-        geometry: QtCore.QByteArray = zad.models.settings.settings.value("geometry",
+        geometry: QtCore.QByteArray = zad.models.settings.conf.get("mainwindow/geometry",
                                                           QtCore.QByteArray()).toByteArray()
         if not geometry:
             availableGeometry: QtCore.QRect = self.screen.availableGeometry()
@@ -68,7 +68,8 @@ class ZaMainWindow(QtWidgets.QMainWindow,zad.pyuic.mainwindow.Ui_mainWindow):
             self.restoreGeometry(geometry)
 
     def writeSettings(self):
-        zad.models.settings.settings.setValue("geometry", self.saveGeometry())
+
+        zad.models.settings.conf.set("mainwindow/geometry", self.saveGeometry())
 
     def exit(self):
         pass

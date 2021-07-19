@@ -115,7 +115,7 @@ class Zone(object):
 
         runner.send_msg('Loading {} ...'.format(self.zone_name))
 
-        for ns in zad.common.IP_XFR_NS:
+        for ns in [zad.common.IP_XFR_NS]:
             try:
                 l.info('[Loading zone {} from NS {}]'.format(self.zone_name, ns))
                 await do_axfr(ns, self.z)

@@ -1,3 +1,4 @@
 dnspython[dnssec]==2.1.0
 PyQt5==5.15.4
 qasync==0.17.0
+pyqtconfig>=0.9.1
