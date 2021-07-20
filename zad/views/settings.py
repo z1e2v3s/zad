@@ -1,4 +1,6 @@
 import logging
+import pprint
+
 from PyQt5 import QtWidgets, QtCore
 import pyqtconfig
 
@@ -18,6 +20,7 @@ class ZaSettinsDialog(QtWidgets.QDialog,zad.pyuic.settings.Ui_settingsTabWidget)
 
 
 
+sc:pyqtconfig.QSettingsManager = None
 sd: ZaSettinsDialog = None
 l = logging.getLogger(__name__)
 
@@ -25,11 +28,13 @@ l = logging.getLogger(__name__)
 def showSettings():
     global sd
     sd.show()
+    ##sd.raise()
 
 
 class SetListsView(QtCore.QObject):
 
     def __init__(self,
+                 listPrefName: str,
                  listWidget: QtWidgets.QListWidget,
                  lineEdit: QtWidgets.QLineEdit,
                  minusButton: QtWidgets.QPushButton,
@@ -41,6 +46,7 @@ class SetListsView(QtCore.QObject):
 
         super(SetListsView, self).__init__(parent)
 
+        self.listPrefName = listPrefName
         self.listWidget = listWidget
         self.listWidget.setSortingEnabled(True)
         self.lineEdit = lineEdit
@@ -55,14 +61,16 @@ class SetListsView(QtCore.QObject):
 
         self.connect_signals()
         
-        self.preservedList = []
         self.preservedText = ''     # while editing an existing list entry
+        self.prefs = []
+        self.row: int = None
         
     @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
     def onListItemClicked(self, item):
         if item.text():
             self.lineEdit.setText(item.text())
-            self.preservedText = item.tex()
+            self.preservedText = item.text()
+            self.row = self.listWidget.currentRow()
             self.minusButton.setDisabled(False)
             self.plusButton.setDisabled(True)
             self.revertButton.setDisabled(True)
@@ -87,15 +95,16 @@ class SetListsView(QtCore.QObject):
 
     @QtCore.pyqtSlot(bool)
     def onMinus(self, checked):
-        self.listWidget.takeItem(self.listWidget.currentRow)
+        self.delPref(self.preservedText)
         self.lineEdit.setText('')
         self.preservedText = ''
         self.minusButton.setDisabled(True)
 
     @QtCore.pyqtSlot(bool)
     def onPlus(self, checked):
-        self.listWidget.addItem(self.lineEdit.text())
+        self.addPref(self.lineEdit.text())
         self.plusButton.setDisabled(True)
+        self.printSettings('End plus')
 
     @QtCore.pyqtSlot(bool)
     def onRevert(self, checked):
@@ -105,15 +114,15 @@ class SetListsView(QtCore.QObject):
 
     @QtCore.pyqtSlot(bool)
     def onOK(self, checked):
-        if self.listWidget.currentRow():    # may called on defocus w/o current row
-            self.listWidget.takeItem(self.listWidget.currentRow())
-            self.listWidget.addItem(self.lineEdit.text())
+        row =self.listWidget.currentRow()
+        if row:                                             # may called on defocus w/o current row
+            self.setPref(row, self.lineEdit.text())
             self.lineEdit.setText('')
             self.preservedText = ''
+            self.plusButton.setDisabled(True)
             self.minusButton.setDisabled(True)
-            self.minusButton.setDisabled(True)
-            self.revertButton.setDisabled(False)
-            self.okButton.setDisabled(False)
+            self.revertButton.setDisabled(True)
+            self.okButton.setDisabled(True)
 
     def connect_signals(self):
         self.listWidget.itemClicked.connect(self.onListItemClicked)
@@ -124,12 +133,36 @@ class SetListsView(QtCore.QObject):
         self.revertButton.clicked.connect(self.onRevert)
         self.okButton.clicked.connect(self.onOK)
 
+    def getPrefs(self) -> []:
+        self.prefs = sc.get(self.listPrefName)
+        print(l)
+        return l
 
+    def addPref(self, value):
+        self.getPrefs()
+        self.prefs.append(value)
+        sc.set(self.listPrefName, self.prefs)
+
+    def setPref(self, index, value):
+        self.prefs[index] = value
+        sc.set(self.listPrefName, self.prefs)
+        print(l)
+        return l
+
+    def delPref(self, value):
+        self.getPrefs()
+        self.prefs.remove(value)
+        sc.set(self.listPrefName, self.prefs)
+
+    def printSettings(self, place):
+        global sc
+        self.listPrefs()
+        print('Settings at {}:\n{}'.format(place, pprint.pprint(sc.as_dict())))
 
 def setup():
-    global settingsDialog, sd
+    global settingsDialog, sc, sd
 
-    sc: pyqtconfig.QSettingsManager = zad.models.settings.conf
+    sc = zad.models.settings.conf
     sd = ZaSettinsDialog()
 
     sc.add_handler("gen/master_server", sd.masterServerLineEdit)
@@ -145,6 +178,7 @@ def setup():
     sc.add_handler("gen/ignored_nets", sd.ignoredListWidget)
 
     sd.addSetListView(SetListsView(
+        "gen/ip4_nets",
         sd.iPv4ListWidget,
         sd.iPv4LineEdit,
         sd.iPv4MinusButton,
@@ -154,6 +188,7 @@ def setup():
     )
 
     sd.addSetListView(SetListsView(
+        "gen/ip6_nets",
         sd.iPv6ListWidget,
         sd.iPv6LineEdit,
         sd.iPv6MinusButton,
@@ -163,6 +198,7 @@ def setup():
     )
 
     sd.addSetListView(SetListsView(
+        "gen/ignored_nets",
         sd.ignoredListWidget,
         sd.ignoredLineEdit,
         sd.ignoredMinusButton,
