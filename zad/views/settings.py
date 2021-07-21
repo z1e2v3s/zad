@@ -133,30 +133,30 @@ class SetListsView(QtCore.QObject):
         self.revertButton.clicked.connect(self.onRevert)
         self.okButton.clicked.connect(self.onOK)
 
-    def getPrefs(self) -> []:
+    def getPrefs(self):
         self.prefs = sc.get(self.listPrefName)
-        print(l)
-        return l
+        return
 
     def addPref(self, value):
         self.getPrefs()
         self.prefs.append(value)
         sc.set(self.listPrefName, self.prefs)
+        self.printSettings('End addPref')
 
     def setPref(self, index, value):
         self.prefs[index] = value
         sc.set(self.listPrefName, self.prefs)
-        print(l)
-        return l
 
     def delPref(self, value):
         self.getPrefs()
         self.prefs.remove(value)
         sc.set(self.listPrefName, self.prefs)
-
+    def updatePrefs(self):
+        pass
+    
     def printSettings(self, place):
         global sc
-        self.listPrefs()
+        print('Settings of list at {}:\n{}'.format(place, self.getPrefs()))
         print('Settings at {}:\n{}'.format(place, pprint.pprint(sc.as_dict())))
 
 def setup():
