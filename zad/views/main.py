@@ -20,6 +20,7 @@ class ZaMainWindow(QtWidgets.QMainWindow,zad.pyuic.mainwindow.Ui_mainWindow):
 
         super(ZaMainWindow,self).__init__(parent)
         self.setupUi(self)
+        self.readSettings()
         zad.views.tables.setup(self)
         self.startThread()
 
@@ -54,22 +55,21 @@ class ZaMainWindow(QtWidgets.QMainWindow,zad.pyuic.mainwindow.Ui_mainWindow):
     def closeEvent(self, event: QtCore.QEvent):
         self.writeSettings()
         event.accept()
-        del zad.models.settings.conf
+        del zad.models.settings.settings
 
     def readSettings(self):
-        geometry: QtCore.QByteArray = zad.models.settings.conf.get("mainwindow/geometry",
-                                                          QtCore.QByteArray()).toByteArray()
-        if not geometry:
-            availableGeometry: QtCore.QRect = self.screen.availableGeometry()
+        if zad.models.settings.settings.contains('mainwindow/size'):
+            self.resize(zad.models.settings.settings.value('mainwindow/size'))
+            self.move(zad.models.settings.settings.value('mainwindow/pos'))
+        else:
+            availableGeometry: QtCore.QRect = self.screen().availableGeometry()
             self.resize(availableGeometry.width() / 3, availableGeometry.height() / 2)
             self.move((availableGeometry.width() - self.width()) / 2,
                         (availableGeometry.height() - self.height()) / 2)
-        else:
-            self.restoreGeometry(geometry)
 
     def writeSettings(self):
-
-        zad.models.settings.conf.set("mainwindow/geometry", self.saveGeometry())
+        zad.models.settings.settings.setValue("mainwindow/size", self.size())
+        zad.models.settings.settings.setValue("mainwindow/pos", self.pos())
 
     def exit(self):
         pass

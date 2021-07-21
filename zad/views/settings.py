@@ -1,26 +1,40 @@
 import logging
 import pprint
 
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
 import pyqtconfig
 
+import zad.app
 import zad.pyuic.settings
 import zad.models.main
 import zad.models.settings
 
 
 class ZaSettinsDialog(QtWidgets.QDialog,zad.pyuic.settings.Ui_settingsTabWidget):
-    def __init__(self):
+    def __init__(self, settings: QtCore.QSettings):
         super(ZaSettinsDialog,self).__init__()
+        self.settings = settings        # prevent from GC
         self.setupUi(self)
+        self.readSettings()
         self.setListViews = []
 
     def addSetListView(self,slv):
         self.setListViews.append(slv)
 
+    def readSettings(self):
+        if zad.models.settings.settings.contains('settings_window/size'):
+            self.resize(zad.models.settings.settings.value('settings_window/size'))
+            self.move(zad.models.settings.settings.value('settings_window/pos'))
 
+    def writeSettings(self):
+        self.settings.setValue("settings_window/size", self.size())
+        self.settings.setValue("settings_window/pos", self.pos())
 
-sc:pyqtconfig.QSettingsManager = None
+    def closeEvent(self, event: QtCore.QEvent):
+        self.writeSettings()
+        event.accept()
+
+sc: QtCore.QSettings = None
 sd: ZaSettinsDialog = None
 l = logging.getLogger(__name__)
 
@@ -49,6 +63,7 @@ class SetListsView(QtCore.QObject):
         self.listPrefName = listPrefName
         self.listWidget = listWidget
         self.listWidget.setSortingEnabled(True)
+        self.prefs = self.getPrefs()
         self.lineEdit = lineEdit
         self.minusButton = minusButton
         self.minusButton.setDisabled(True)
@@ -62,7 +77,6 @@ class SetListsView(QtCore.QObject):
         self.connect_signals()
         
         self.preservedText = ''     # while editing an existing list entry
-        self.prefs = []
         self.row: int = None
         
     @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
@@ -91,20 +105,26 @@ class SetListsView(QtCore.QObject):
 
     @QtCore.pyqtSlot()
     def onEndEdited(self):
-        self.onOK(False)
+        ##self.onOK(False)
+        pass
 
     @QtCore.pyqtSlot(bool)
     def onMinus(self, checked):
         self.delPref(self.preservedText)
+        self.listWidget.takeItem(self.listWidget.currentRow)
         self.lineEdit.setText('')
         self.preservedText = ''
         self.minusButton.setDisabled(True)
 
     @QtCore.pyqtSlot(bool)
     def onPlus(self, checked):
-        self.addPref(self.lineEdit.text())
-        self.plusButton.setDisabled(True)
-        self.printSettings('End plus')
+        text = self.lineEdit.text()
+        if not self.prefs or not text in self.prefs:
+            self.addPref(self.lineEdit.text())
+            self.listWidget.addItem(text)
+            self.plusButton.setDisabled(True)
+        else:
+            zad.app.application.beep()
 
     @QtCore.pyqtSlot(bool)
     def onRevert(self, checked):
@@ -117,6 +137,8 @@ class SetListsView(QtCore.QObject):
         row =self.listWidget.currentRow()
         if row:                                             # may called on defocus w/o current row
             self.setPref(row, self.lineEdit.text())
+            self.listWidget.takeItem(self.listWidget.currentRow())
+            self.listWidget.addItem(self.lineEdit.text())
             self.lineEdit.setText('')
             self.preservedText = ''
             self.plusButton.setDisabled(True)
@@ -134,51 +156,38 @@ class SetListsView(QtCore.QObject):
         self.okButton.clicked.connect(self.onOK)
 
     def getPrefs(self):
-        self.prefs = sc.get(self.listPrefName)
-        return
+        self.prefs = zad.models.settings.getNetList(self.listPrefName)
 
     def addPref(self, value):
         self.getPrefs()
         self.prefs.append(value)
-        sc.set(self.listPrefName, self.prefs)
-        self.printSettings('End addPref')
+        self.updatePrefs()
 
     def setPref(self, index, value):
+        self.getPrefs()
         self.prefs[index] = value
-        sc.set(self.listPrefName, self.prefs)
+        self.updatePrefs()
 
     def delPref(self, value):
         self.getPrefs()
         self.prefs.remove(value)
-        sc.set(self.listPrefName, self.prefs)
+        self.updatePrefs()
+
     def updatePrefs(self):
-        pass
-    
+        zad.models.settings.updateNetList(self.listPrefName, self.prefs)
+
     def printSettings(self, place):
         global sc
         print('Settings of list at {}:\n{}'.format(place, self.getPrefs()))
         print('Settings at {}:\n{}'.format(place, pprint.pprint(sc.as_dict())))
 
-def setup():
-    global settingsDialog, sc, sd
+def setup(settings):
+    global settingsDialog, sd
 
-    sc = zad.models.settings.conf
-    sd = ZaSettinsDialog()
-
-    sc.add_handler("gen/master_server", sd.masterServerLineEdit)
-    sc.add_handler("gen/ddns_key_file", sd.ddnsKeyFileLineEdit)
-    sc.add_handler("gen/ns_for_axfr", sd.serverForZoneTransferLineEdit)
-    sc.add_handler("gen/initial_domain", sd.initialDomainLineEdit)
-    sc.add_handler("gen/default_ip4_prefix", sd.defaultPrefixIPv4LineEdit)
-    sc.add_handler("gen/default_ip6_prefix", sd.defaultPrefixIPv6LineEdit)
-    sc.add_handler("gen/log_file", sd.logfileLineEdit)
-    sc.add_handler("gen/debug", sd.debugCheckBox)
-    sc.add_handler("gen/ip4_nets", sd.iPv4ListWidget)
-    sc.add_handler("gen/ip6_nets", sd.iPv6ListWidget)
-    sc.add_handler("gen/ignored_nets", sd.ignoredListWidget)
+    sd = ZaSettinsDialog(settings)
 
     sd.addSetListView(SetListsView(
-        "gen/ip4_nets",
+        "ip4_nets",
         sd.iPv4ListWidget,
         sd.iPv4LineEdit,
         sd.iPv4MinusButton,
@@ -188,7 +197,7 @@ def setup():
     )
 
     sd.addSetListView(SetListsView(
-        "gen/ip6_nets",
+        "ip6_nets",
         sd.iPv6ListWidget,
         sd.iPv6LineEdit,
         sd.iPv6MinusButton,
@@ -198,7 +207,7 @@ def setup():
     )
 
     sd.addSetListView(SetListsView(
-        "gen/ignored_nets",
+        "ignored_nets",
         sd.ignoredListWidget,
         sd.ignoredLineEdit,
         sd.ignoredMinusButton,

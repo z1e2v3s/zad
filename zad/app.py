@@ -30,8 +30,6 @@ event_loop: QtCore.QEventLoop = None
 translator: QtCore.QTranslator = None
 locale: QtCore.QLocale = None
 
-settings: QtCore.QSettings = None
-
 
 def run():
 
@@ -39,8 +37,8 @@ def run():
     init_translations()
     init_logging(zad.common.DEFAULT_LOG_PATH)
 
-    zad.models.settings.setup()
-    zad.views.settings.setup()
+    settings = zad.models.settings.setup()  #prevent from GC
+    zad.views.settings.setup(settings)
 
     ##zad.models.main.setup()
     zad.views.main.setup()
