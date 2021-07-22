@@ -1,7 +1,7 @@
 import logging
 import pprint
 
-from PyQt5 import QtWidgets, QtCore, QtGui
+from PyQt5 import QtWidgets, QtCore
 import pyqtconfig
 
 import zad.app
@@ -63,7 +63,10 @@ class SetListsView(QtCore.QObject):
         self.listPrefName = listPrefName
         self.listWidget = listWidget
         self.listWidget.setSortingEnabled(True)
-        self.prefs = self.getPrefs()
+        self.getPrefs()
+        if self.prefs:
+            self.listWidget.insertItems(0, self.prefs)
+            self.listWidget.clearSelection()
         self.lineEdit = lineEdit
         self.minusButton = minusButton
         self.minusButton.setDisabled(True)
@@ -87,21 +90,29 @@ class SetListsView(QtCore.QObject):
             self.row = self.listWidget.currentRow()
             self.minusButton.setDisabled(False)
             self.plusButton.setDisabled(True)
+            self.plusButton.setDefault(False)
             self.revertButton.setDisabled(True)
             self.okButton.setDisabled(True)
+            self.okButton.setDefault(False)
 
     @QtCore.pyqtSlot(str)
     def onEdited(self, checked):
         if self.preservedText:      # modifying existing row
             self.plusButton.setDisabled(True)
+            self.plusButton.setDefault(False)
             self.minusButton.setDisabled(True)
             self.revertButton.setDisabled(False)
+
             self.okButton.setDisabled(False)
+            self.okButton.setDefault(True)
         else:                       # new row may be added with "+"
-            self.plusButton.setDisabled(False)
             self.minusButton.setDisabled(True)
             self.revertButton.setDisabled(False)
             self.okButton.setDisabled(True)
+            self.okButton.setDefault(False)
+
+            self.plusButton.setDisabled(False)
+            self.plusButton.setDefault(True)
 
     @QtCore.pyqtSlot()
     def onEndEdited(self):
@@ -111,7 +122,7 @@ class SetListsView(QtCore.QObject):
     @QtCore.pyqtSlot(bool)
     def onMinus(self, checked):
         self.delPref(self.preservedText)
-        self.listWidget.takeItem(self.listWidget.currentRow)
+        self.listWidget.takeItem(self.listWidget.currentRow())
         self.lineEdit.setText('')
         self.preservedText = ''
         self.minusButton.setDisabled(True)
@@ -131,6 +142,7 @@ class SetListsView(QtCore.QObject):
         self.lineEdit.setText(self.preservedText)
         self.revertButton.setDisabled(True)
         self.okButton.setDisabled(True)
+        self.okButton.setDefault(False)
 
     @QtCore.pyqtSlot(bool)
     def onOK(self, checked):
@@ -145,6 +157,7 @@ class SetListsView(QtCore.QObject):
             self.minusButton.setDisabled(True)
             self.revertButton.setDisabled(True)
             self.okButton.setDisabled(True)
+            self.okButton.setDefault(False)
 
     def connect_signals(self):
         self.listWidget.itemClicked.connect(self.onListItemClicked)

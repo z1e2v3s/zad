@@ -40,23 +40,29 @@ def getNetList(name) -> []:
     global settings
 
     li = []
-    if settings.contains(name):
-        size: int = settings.beginReadArray(name)
-        for i in range(size):
-            settings.setArrayIndex(i)
-            li.append(settings.value(str(i)))
-        settings.endArray()
+    ##if settings.contains(name):
+
+    size: int = settings.beginReadArray(name)
+    print('get:size ' + str(size))
+    for i in range(size):
+        settings.setArrayIndex(i)
+        li.append(settings.value('net'))
+    settings.endArray()
+
+    print('get: result ' + repr(li))
     return li
 
 
 def updateNetList(name: str, theList: []):
     global settings
-
+    print('update ' + repr(theList))
     if settings.contains(name):
+        print('update: Removing all')
         settings.remove(name)
     theList.sort()
     settings.beginWriteArray(name)
     for i in range(len(theList)):
         settings.setArrayIndex(i)
-        settings.setValue(str(i), theList[i])
+        settings.setValue('net', theList[i])
+        print('update: Setting {}'.format(theList[i]))
     settings.endArray()
