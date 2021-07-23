@@ -2,7 +2,6 @@ import logging
 import pprint
 
 from PyQt5 import QtWidgets, QtCore
-import pyqtconfig
 
 import zad.app
 import zad.pyuic.settings
