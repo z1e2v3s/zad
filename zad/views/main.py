@@ -89,6 +89,7 @@ def setup():
     mainWindow = ZaMainWindow()
     mainWindow.connectActions()
     statusBar = mainWindow.statusbar
+    mainWindow.readSettings()
     mainWindow.show()
     l.debug('After mw.show')
     return
