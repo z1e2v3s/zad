@@ -9,12 +9,46 @@ import zad.models.main
 import zad.models.settings
 
 
+
+class PrefLineEditView(QtCore.QObject):
+
+    def __init__(self,
+                 lineEdit: QtWidgets.QLineEdit,
+                 prefName: str):
+        super(PrefLineEditView, self).__init__()
+        self.lineEdit: QtWidgets.QLineEdit = lineEdit
+        self.prefName: str = prefName
+        self.preservedText = ''
+
+    def readPref(self):
+        self.preservedText = str(getattr(zad.prefs, self.prefName))
+        self.lineEdit.setText(self.preservedText)
+
+    def writePref(self):
+        self.preservedText = self.lineEdit.text()
+        setattr(zad.prefs, self.prefName, self.preservedText)
+
+
 class ZaSettinsDialog(QtWidgets.QDialog,zad.pyuic.settings.Ui_settingsTabWidget):
     def __init__(self):
-        super(ZaSettinsDialog,self).__init__()
+        super(ZaSettinsDialog, self).__init__()
         self.setupUi(self)
         self.readSettings()
+        self.lineEditViews = []
+
         self.setListViews = []
+
+        for lineEdit, prefName in ((self.masterServerLineEdit, 'master_server'),
+                                   (self.ddnsKeyFileLineEdit, 'ddns_key_file'),
+                                   (self.serverForZoneTransferLineEdit, 'ddns_key_file'),
+                                   (self.initialDomainLineEdit, 'initial_domain'),
+                                   (self.defaultPrefixIPv4LineEdit, 'default_ip4_prefix'),
+                                   (self.defaultPrefixIPv6LineEdit, 'default_ip6_prefix'),
+                                   (self.logfileLineEdit, 'log_file')):
+            self.lineEditViews.append(PrefLineEditView(lineEdit, prefName))
+
+        for prefLineEditView in self.lineEditViews:
+            prefLineEditView.readPref()
 
     def addSetListView(self,slv):
         self.setListViews.append(slv)
@@ -202,6 +236,15 @@ class SetListsView(QtCore.QObject):
         global sc
         print('Settings of list at {}:\n{}'.format(place, self.getPrefs()))
         print('Settings at {}:\n{}'.format(place, pprint.pprint(sc.as_dict())))
+
+
+class Tab1View(QtCore.QObject):
+    def __init__(self,
+        parent = None):
+        super(SetListsView, self).__init__(parent)
+
+        self.preservedText = ''
+
 
 
 def setup():

@@ -12,6 +12,8 @@ class Prefs(QtCore.QObject):
     """
     def __init__(self):
 
+        super(Prefs, self).__init__()
+
         QtCore.QCoreApplication.setOrganizationName("chaos1")
         QtCore.QCoreApplication.setOrganizationDomain("chaos1.de")
         QtCore.QCoreApplication.setApplicationName("zad")
@@ -31,16 +33,16 @@ class Prefs(QtCore.QObject):
         self._ip6_nets = []
         self._ignored_nets = []
         
-        if not self._settings.childGroups(): # are there any groups in the settings?
-                                        # no - initialize with default values
-            self._settings.setValue('gen/master_server', '')                          # masterServerLineEdit
-            self._settings.setValue("gen/ddns_key_file", '')                          # ddnsKeyFileLineEdit
-            self._settings.setValue("gen/ns_for_axfr", zad.common.IP_XFR_NS)          # serverForZoneTransferLineEdit
-            self._settings.setValue("gen/initial_domain", zad.common.INITIAL_DOMAIN)  # initialDomainLineEdit
-            self._settings.setValue("gen/default_ip4_prefix", 24)                     # defaultPrefixIPv4LineEdit
-            self._settings.setValue("gen/default_ip6_prefix", 64)                     # defaultPrefixIPv6LineEdit
-            self._settings.setValue("gen/log_file", zad.common.DEFAULT_LOG_PATH)      # logfileLineEdit
-            self._settings.setValue("gen/debug", False)        # debugCheckBox
+##        if not self._settings.childKeys():    # are there any groups in the settings?
+##                                                # no - initialize with default values
+##            self._settings.setValue('gen/master_server', '')                          # masterServerLineEdit
+##            self._settings.setValue("gen/ddns_key_file", '')                          # ddnsKeyFileLineEdit
+##            self._settings.setValue("gen/ns_for_axfr", zad.common.IP_XFR_NS)          # serverForZoneTransferLineEdit
+##            self._settings.setValue("gen/initial_domain", zad.common.INITIAL_DOMAIN)  # initialDomainLineEdit
+##            self._settings.setValue("gen/default_ip4_prefix", '24')                     # defaultPrefixIPv4LineEdit
+##            self._settings.setValue("gen/default_ip6_prefix", '64')                     # defaultPrefixIPv6LineEdit
+##            self._settings.setValue("gen/log_file", zad.common.DEFAULT_LOG_PATH)      # logfileLineEdit
+##            self._settings.setValue("gen/debug", False)        # debugCheckBox
     
         self._read_all_settings()
         
@@ -121,7 +123,7 @@ class Prefs(QtCore.QObject):
     @debug.setter
     def debug(self, debug):
         self._debug = debug
-        self._settings.setValue('gen/debug', debug)
+        self._settings.setValue('gen/debug', str(debug))
 
     
     @property
@@ -173,14 +175,14 @@ class Prefs(QtCore.QObject):
 
     def _read_all_settings(self):
     
-        self._master_server = self._settings.value('gen/master_server') 
-        self._ddns_key_file = self._settings.value("gen/ddns_key_file")
-        self._ns_for_axfr = self._settings.value("gen/ns_for_axfr")
-        self._initial_domain = self._settings.value("gen/initial_domain")
-        self._default_ip4_prefix = self._settings.value("gen/default_ip4_prefix")
-        self._default_ip6_prefix = self._settings.value("gen/default_ip6_prefix")
-        self._log_file = self._settings.value("gen/log_file")
-        self._debug = self._settings.value("gen/debug")
+        self._master_server = self._settings.value('gen/master_server', '') 
+        self._ddns_key_file = self._settings.value("gen/ddns_key_file", '')
+        self._ns_for_axfr = self._settings.value("gen/ns_for_axfr", zad.common.IP_XFR_NS)
+        self._initial_domain = self._settings.value("gen/initial_domain", zad.common.INITIAL_DOMAIN)
+        self._default_ip4_prefix = self._settings.value("gen/default_ip4_prefix", '24')
+        self._default_ip6_prefix = self._settings.value("gen/default_ip6_prefix", '64')
+        self._log_file = self._settings.value("gen/log_file", zad.common.DEFAULT_LOG_PATH)
+        self._debug = bool(self._settings.value("gen/debug", False))
     
         for name in ('ip4_nets', 'ip6_nets', 'ignored_nets'):
             lst = self.get_net_list(name)
