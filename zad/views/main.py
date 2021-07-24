@@ -54,13 +54,13 @@ class ZaMainWindow(QtWidgets.QMainWindow,zad.pyuic.mainwindow.Ui_mainWindow):
 
     def closeEvent(self, event: QtCore.QEvent):
         self.writeSettings()
+        zad.prefs.sync()
         event.accept()
-        del zad.models.settings.settings
 
     def readSettings(self):
-        if zad.models.settings.settings.contains('mainwindow/size'):
-            self.resize(zad.models.settings.settings.value('mainwindow/size'))
-            self.move(zad.models.settings.settings.value('mainwindow/pos'))
+        if zad.prefs._settings.contains('mainwindow/size'):
+            self.resize(zad.prefs._settings.value('mainwindow/size'))
+            self.move(zad.prefs._settings.value('mainwindow/pos'))
         else:
             availableGeometry: QtCore.QRect = self.screen().availableGeometry()
             self.resize(availableGeometry.width() / 3, availableGeometry.height() / 2)
@@ -68,8 +68,8 @@ class ZaMainWindow(QtWidgets.QMainWindow,zad.pyuic.mainwindow.Ui_mainWindow):
                         (availableGeometry.height() - self.height()) / 2)
 
     def writeSettings(self):
-        zad.models.settings.settings.setValue("mainwindow/size", self.size())
-        zad.models.settings.settings.setValue("mainwindow/pos", self.pos())
+        zad.prefs._settings.setValue("mainwindow/size", self.size())
+        zad.prefs._settings.setValue("mainwindow/pos", self.pos())
 
     def exit(self):
         pass

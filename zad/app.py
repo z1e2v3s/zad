@@ -22,6 +22,7 @@ import logging
 import sys
 
 import zad.models.main
+import zad.models.settings
 import zad.views.main
 
 application: QtWidgets.QApplication = None
@@ -30,15 +31,14 @@ event_loop: QtCore.QEventLoop = None
 translator: QtCore.QTranslator = None
 locale: QtCore.QLocale = None
 
-
 def run():
 
     setup()
     init_translations()
     init_logging(zad.common.DEFAULT_LOG_PATH)
 
-    settings = zad.models.settings.setup()  #prevent from GC
-    zad.views.settings.setup(settings)
+    zad.prefs = zad.models.settings.Prefs()
+    zad.views.settings.setup()
 
     ##zad.models.main.setup()
     zad.views.main.setup()

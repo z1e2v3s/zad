@@ -6,68 +6,6 @@ import zad.common
 
 l = logging.getLogger(__name__)
 
-settings: QtCore.QSettings = None
-
-
-def setup():
-    global settings
-
-    QtCore.QCoreApplication.setOrganizationName("chaos1")
-    QtCore.QCoreApplication.setOrganizationDomain("chaos1.de")
-    QtCore.QCoreApplication.setApplicationName("zad")
-    QtCore.QCoreApplication.setApplicationVersion(zad.get_version())
-
-    settings = QtCore.QSettings()
-
-    if not (settings.contains('gen/ns_for_axfr') and
-            settings.contains('gen/initial_domain') and
-            settings.contains('gen/default_ip4_prefix') and
-            settings.contains('gen/default_ip6_prefix') and
-            settings.contains('gen/log_file')):
-
-        settings.setValue('gen/master_server', '')                           # masterServerLineEdit
-        settings.setValue("gen/ddns_key_file", '')                          # ddnsKeyFileLineEdit
-        settings.setValue("gen/ns_for_axfr", zad.common.IP_XFR_NS)          # serverForZoneTransferLineEdit
-        settings.setValue("gen/initial_domain", zad.common.INITIAL_DOMAIN)  # initialDomainLineEdit
-        settings.setValue("gen/default_ip4_prefix", 24)                     # defaultPrefixIPv4LineEdit
-        settings.setValue("gen/default_ip6_prefix", 64)                     # defaultPrefixIPv6LineEdit
-        settings.setValue("gen/log_file", zad.common.DEFAULT_LOG_PATH)      # logfileLineEdit
-        settings.setValue("gen/debug", False)                               # debugCheckBox
-
-    return settings
-
-def getNetList(name) -> []:
-    global settings
-
-    li = []
-    ##if settings.contains(name):
-
-    size: int = settings.beginReadArray(name)
-    print('get:size ' + str(size))
-    for i in range(size):
-        settings.setArrayIndex(i)
-        li.append(settings.value('net'))
-    settings.endArray()
-
-    print('get: result ' + repr(li))
-    return li
-
-
-def updateNetList(name: str, theList: []):
-    global settings
-    print('update ' + repr(theList))
-    if settings.contains(name):
-        print('update: Removing all')
-        settings.remove(name)
-    theList.sort()
-    settings.beginWriteArray(name)
-    for i in range(len(theList)):
-        settings.setArrayIndex(i)
-        settings.setValue('net', theList[i])
-        print('update: Setting {}'.format(theList[i]))
-    settings.endArray()
-    
-
 class Prefs(QtCore.QObject):
     """
     storage manager for settings
@@ -93,7 +31,7 @@ class Prefs(QtCore.QObject):
         self._ip6_nets = []
         self._ignored_nets = []
         
-        if not _settings.childGroups(): # are there any groups in the settings?
+        if not self._settings.childGroups(): # are there any groups in the settings?
                                         # no - initialize with default values
             self._settings.setValue('gen/master_server', '')                          # masterServerLineEdit
             self._settings.setValue("gen/ddns_key_file", '')                          # ddnsKeyFileLineEdit
@@ -189,32 +127,18 @@ class Prefs(QtCore.QObject):
     @property
     def ip4_nets(self):
             return self._ip4_nets
-            
-    @ip4_nets.setter
-    def ip4_nets(self, ip4_nets):
-        self._ip4_nets = ip4_nets
-        self._updateNetList('ip4_nets', ip4_nets)
-
     
     @property
     def ip6_nets(self):
             return self._ip6_nets
-            
-    @ip6_nets.setter
-    def ip6_nets(self, ip6_nets):
-        self._ip6_nets = ip6_nets
-        self._updateNetList('ip6_nets', ip6_nets)
 
-    
     @property
     def ignored_nets(self):
             return self._ignored_nets
             
-    @ignored_nets.setter
-    def ignored_nets(self, ignored_nets):
-        self._ignored_nets = ignored_nets
-        self._updateNetList('ignored_nets', ignored_nets)
 
+    def sync(self):
+        self._settings.sync()
 
     def get_net_list(self, name) -> []:
     
@@ -227,7 +151,7 @@ class Prefs(QtCore.QObject):
             li.append(self._settings.value('net'))
         self._settings.endArray()
     
-        print('get: result ' + repr(li))
+        setattr(self, '_' + name, li)
         return li
     
     
@@ -244,7 +168,8 @@ class Prefs(QtCore.QObject):
             self._settings.setValue('net', theList[i])
             print('update: Setting {}'.format(theList[i]))
         self._settings.endArray()
-    
+        setattr(self, '_' + name, theList)
+
 
     def _read_all_settings(self):
     
@@ -259,5 +184,5 @@ class Prefs(QtCore.QObject):
     
         for name in ('ip4_nets', 'ip6_nets', 'ignored_nets'):
             lst = self.get_net_list(name)
-            setatr(self, '_' + name, lst)
+            setattr(self, '_' + name, lst)
 

@@ -10,9 +10,8 @@ import zad.models.settings
 
 
 class ZaSettinsDialog(QtWidgets.QDialog,zad.pyuic.settings.Ui_settingsTabWidget):
-    def __init__(self, settings: QtCore.QSettings):
+    def __init__(self):
         super(ZaSettinsDialog,self).__init__()
-        self.settings = settings        # prevent from GC
         self.setupUi(self)
         self.readSettings()
         self.setListViews = []
@@ -21,16 +20,17 @@ class ZaSettinsDialog(QtWidgets.QDialog,zad.pyuic.settings.Ui_settingsTabWidget)
         self.setListViews.append(slv)
 
     def readSettings(self):
-        if zad.models.settings.settings.contains('settings_window/size'):
-            self.resize(zad.models.settings.settings.value('settings_window/size'))
-            self.move(zad.models.settings.settings.value('settings_window/pos'))
+        if zad.prefs._settings.contains('settings_window/size'):
+            self.resize(zad.prefs._settings.value('settings_window/size'))
+            self.move(zad.prefs._settings.value('settings_window/pos'))
 
     def writeSettings(self):
-        self.settings.setValue("settings_window/size", self.size())
-        self.settings.setValue("settings_window/pos", self.pos())
+        zad.prefs._settings.setValue("settings_window/size", self.size())
+        zad.prefs._settings.setValue("settings_window/pos", self.pos())
 
     def closeEvent(self, event: QtCore.QEvent):
         self.writeSettings()
+        zad.prefs.sync()
         event.accept()
 
 sc: QtCore.QSettings = None
@@ -83,16 +83,26 @@ class SetListsView(QtCore.QObject):
         
     @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
     def onListItemClicked(self, item):
-        if item.text():
-            self.lineEdit.setText(item.text())
-            self.preservedText = item.text()
-            self.row = self.listWidget.currentRow()
-            self.minusButton.setDisabled(False)
-            self.plusButton.setDisabled(True)
-            self.plusButton.setDefault(False)
-            self.revertButton.setDisabled(True)
-            self.okButton.setDisabled(True)
-            self.okButton.setDefault(False)
+        if item.text():                         # a row has been selected
+            if self.listWidget.selectedItems():
+                self.lineEdit.setText(item.text())
+                self.preservedText = item.text()
+                self.row = self.listWidget.currentRow()
+                self.minusButton.setDisabled(False)
+                self.minusButton.setDefault(True)
+                self.plusButton.setDefault(False)
+                self.revertButton.setDisabled(True)
+                self.okButton.setDisabled(True)
+                self.okButton.setDefault(False)
+            else:                                   # no row selected
+                self.lineEdit.setText('')
+                self.preservedText = ''
+                self.minusButton.setDisabled(True)
+                self.plusButton.setDisabled(True)
+                self.plusButton.setDefault(False)
+                self.revertButton.setDisabled(True)
+                self.okButton.setDisabled(True)
+                self.okButton.setDefault(False)
 
     @QtCore.pyqtSlot(str)
     def onEdited(self, checked):
@@ -168,7 +178,7 @@ class SetListsView(QtCore.QObject):
         self.okButton.clicked.connect(self.onOK)
 
     def getPrefs(self):
-        self.prefs = zad.models.settings.getNetList(self.listPrefName)
+        self.prefs = zad.prefs.get_net_list(self.listPrefName)
 
     def addPref(self, value):
         self.getPrefs()
@@ -186,17 +196,18 @@ class SetListsView(QtCore.QObject):
         self.updatePrefs()
 
     def updatePrefs(self):
-        zad.models.settings.updateNetList(self.listPrefName, self.prefs)
+        zad.prefs._updateNetList(self.listPrefName, self.prefs)
 
     def printSettings(self, place):
         global sc
         print('Settings of list at {}:\n{}'.format(place, self.getPrefs()))
         print('Settings at {}:\n{}'.format(place, pprint.pprint(sc.as_dict())))
 
-def setup(settings):
+
+def setup():
     global settingsDialog, sd
 
-    sd = ZaSettinsDialog(settings)
+    sd = ZaSettinsDialog()
 
     sd.addSetListView(SetListsView(
         "ip4_nets",
