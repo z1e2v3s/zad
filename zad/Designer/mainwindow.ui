@@ -44,7 +44,11 @@
             <widget class="QComboBox" name="comboBoxSub_1"/>
            </item>
            <item>
-            <widget class="QTableView" name="tableView_1"/>
+            <widget class="QTableView" name="tableView_1">
+             <property name="selectionMode">
+              <enum>QAbstractItemView::SingleSelection</enum>
+             </property>
+            </widget>
            </item>
           </layout>
          </item>
@@ -64,7 +68,11 @@
             <widget class="QComboBox" name="comboBoxSub_2"/>
            </item>
            <item>
-            <widget class="QTableView" name="tableView_2"/>
+            <widget class="QTableView" name="tableView_2">
+             <property name="selectionMode">
+              <enum>QAbstractItemView::SingleSelection</enum>
+             </property>
+            </widget>
            </item>
           </layout>
          </item>
@@ -84,7 +92,11 @@
             <widget class="QComboBox" name="comboBoxSub_3"/>
            </item>
            <item>
-            <widget class="QTableView" name="tableView_3"/>
+            <widget class="QTableView" name="tableView_3">
+             <property name="selectionMode">
+              <enum>QAbstractItemView::SingleSelection</enum>
+             </property>
+            </widget>
            </item>
           </layout>
          </item>
