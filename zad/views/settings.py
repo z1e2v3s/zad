@@ -28,29 +28,77 @@ class PrefLineEditView(QtCore.QObject):
         self.preservedText = self.lineEdit.text()
         setattr(zad.prefs, self.prefName, self.preservedText)
 
+    def revert(self):
+        self.lineEdit.setText(self.preservedText)
 
-class ZaSettinsDialog(QtWidgets.QDialog,zad.pyuic.settings.Ui_settingsTabWidget):
+
+class ZaSettingsDialog(QtWidgets.QDialog,zad.pyuic.settings.Ui_settingsTabWidget):
     def __init__(self):
-        super(ZaSettinsDialog, self).__init__()
+        super(ZaSettingsDialog, self).__init__()
         self.setupUi(self)
         self.readSettings()
         self.lineEditViews = []
-
         self.setListViews = []
 
-        for lineEdit, prefName in ((self.masterServerLineEdit, 'master_server'),
+        self.init_pane_1()
+        self.connect_signals()
+
+    @QtCore.pyqtSlot(str)
+    def onEdited(self, checked):
+        self.OkButton.setDisabled(False)
+        self.OkButton.setDefault(True)
+        self.revertButton.setDisabled(False)
+
+    @QtCore.pyqtSlot(int)
+    def onCheckBoxChanged(self, state):
+        self.OkButton.setDisabled(False)
+        self.OkButton.setDefault(True)
+        self.revertButton.setDisabled(False)
+
+    @QtCore.pyqtSlot(bool)
+    def onOK(self, checked):
+        self.OkButton.setDisabled(True)
+        self.revertButton.setDisabled(True)
+        for lineEditView in self.lineEditViews:
+            lineEditView.writePref()
+        self.preservedDebugState = self.debugCheckBox.isChecked()
+        zad.prefs.debug = self.preservedDebugState
+
+    @QtCore.pyqtSlot(bool)
+    def onRevert(self, checked):
+        self.OkButton.setDisabled(True)
+        self.revertButton.setDisabled(True)
+        for lineEditView in self.lineEditViews:
+            lineEditView.revert()
+        self.debugCheckBox.setChecked(self.preservedDebugState)
+
+    def init_pane_1(self):
+        for lineEdit, prefName in [(self.masterServerLineEdit, 'master_server'),
                                    (self.ddnsKeyFileLineEdit, 'ddns_key_file'),
                                    (self.serverForZoneTransferLineEdit, 'ns_for_axfr'),
                                    (self.initialDomainLineEdit, 'initial_domain'),
                                    (self.defaultPrefixIPv4LineEdit, 'default_ip4_prefix'),
                                    (self.defaultPrefixIPv6LineEdit, 'default_ip6_prefix'),
-                                   (self.logfileLineEdit, 'log_file')):
-            self.lineEditViews.append(PrefLineEditView(lineEdit, prefName))
+                                   (self.logfileLineEdit, 'log_file')]:
+            plf = PrefLineEditView(lineEdit, prefName)
+            self.lineEditViews.append(plf)
 
         for prefLineEditView in self.lineEditViews:
             prefLineEditView.readPref()
 
-    def addSetListView(self,slv):
+        self.OkButton.setDisabled(True)
+        self.revertButton.setDisabled(True)
+        self.preservedDebugState = zad.prefs.debug
+        self.debugCheckBox.setChecked(self.preservedDebugState)
+
+    def connect_signals(self):
+        for lineEditView in self.lineEditViews:
+            lineEditView.lineEdit.textEdited.connect(self.onEdited)
+        self.debugCheckBox.stateChanged.connect(self.onCheckBoxChanged)
+        self.revertButton.clicked.connect(self.onRevert)
+        self.OkButton.clicked.connect(self.onOK)
+
+    def addSetListView(self, slv):
         self.setListViews.append(slv)
 
     def readSettings(self):
@@ -68,7 +116,7 @@ class ZaSettinsDialog(QtWidgets.QDialog,zad.pyuic.settings.Ui_settingsTabWidget)
         event.accept()
 
 sc: QtCore.QSettings = None
-sd: ZaSettinsDialog = None
+sd: ZaSettingsDialog = None
 l = logging.getLogger(__name__)
 
 @QtCore.pyqtSlot()
@@ -241,7 +289,7 @@ class SetListsView(QtCore.QObject):
 class Tab1View(QtCore.QObject):
     def __init__(self,
         parent = None):
-        super(SetListsView, self).__init__(parent)
+        super(Tab1View, self).__init__(parent)
 
         self.preservedText = ''
 
@@ -250,7 +298,7 @@ class Tab1View(QtCore.QObject):
 def setup():
     global settingsDialog, sd
 
-    sd = ZaSettinsDialog()
+    sd = ZaSettingsDialog()
 
     sd.addSetListView(SetListsView(
         "ip4_nets",
