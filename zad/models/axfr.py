@@ -127,6 +127,7 @@ class Zone(object):
             
         else:
             l.error('?loadZone {} failed. Giving up.'.format(self.zone_name))
+            runner.send_msg('?loadZone {} failed. Giving up.'.format(self.zone_name))
             self.d = [['', '', '', ''], ['', '', '', '']]
             return
         
