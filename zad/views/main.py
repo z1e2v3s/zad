@@ -88,6 +88,7 @@ def setup():
 
     mainWindow = ZaMainWindow()
     mainWindow.connectActions()
+    mainWindow.setWindowTitle(zad.common.windowHeading)
     statusBar = mainWindow.statusbar
     mainWindow.readSettings()
     mainWindow.show()
