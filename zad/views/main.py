@@ -61,6 +61,17 @@ class ZaMainWindow(QtWidgets.QMainWindow,zad.pyuic.mainwindow.Ui_mainWindow):
         if zad.prefs._settings.contains('mainwindow/size'):
             self.resize(zad.prefs._settings.value('mainwindow/size'))
             self.move(zad.prefs._settings.value('mainwindow/pos'))
+            if zad.prefs._settings.contains('mainwindow/box1size'):
+                self.box1.resize(zad.prefs._settings.value('mainwindow/box1size'))
+                self.box1.move(zad.prefs._settings.value('mainwindow/box1pos'))
+                self.box2.resize(zad.prefs._settings.value('mainwindow/box2size'))
+                self.box2.move(zad.prefs._settings.value('mainwindow/box2pos'))
+                self.box3.resize(zad.prefs._settings.value('mainwindow/box3size'))
+                self.box3.move(zad.prefs._settings.value('mainwindow/box3pos'))
+                self.mainBox.resize(zad.prefs._settings.value('mainwindow/mainBoxsize'))
+                self.mainBox.move(zad.prefs._settings.value('mainwindow/mainBoxpos'))
+                self.editBox.resize(zad.prefs._settings.value('mainwindow/editBoxsize'))
+                self.editBox.move(zad.prefs._settings.value('mainwindow/editBoxpos'))
         else:
             availableGeometry: QtCore.QRect = self.screen().availableGeometry()
             self.resize(availableGeometry.width() / 3, availableGeometry.height() / 2)
@@ -70,6 +81,17 @@ class ZaMainWindow(QtWidgets.QMainWindow,zad.pyuic.mainwindow.Ui_mainWindow):
     def writeSettings(self):
         zad.prefs._settings.setValue("mainwindow/size", self.size())
         zad.prefs._settings.setValue("mainwindow/pos", self.pos())
+        zad.prefs._settings.setValue("mainwindow/box1size", self.box1.size())
+        zad.prefs._settings.setValue("mainwindow/box1pos", self.box1.pos())
+        zad.prefs._settings.setValue("mainwindow/box2size", self.box2.size())
+        zad.prefs._settings.setValue("mainwindow/box2pos", self.box2.pos())
+        zad.prefs._settings.setValue("mainwindow/box3size", self.box3.size())
+        zad.prefs._settings.setValue("mainwindow/box3pos", self.box3.pos())
+        zad.prefs._settings.setValue("mainwindow/mainBoxsize", self.mainBox.size())
+        zad.prefs._settings.setValue("mainwindow/mainBoxpos", self.mainBox.pos())
+        zad.prefs._settings.setValue("mainwindow/editBoxsize", self.editBox.size())
+        zad.prefs._settings.setValue("mainwindow/editBoxpos", self.editBox.pos())
+        
 
     def exit(self):
         pass
