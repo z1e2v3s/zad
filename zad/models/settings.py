@@ -32,20 +32,25 @@ class Prefs(QtCore.QObject):
         self._ip4_nets = []
         self._ip6_nets = []
         self._ignored_nets = []
-        
-##        if not self._settings.childKeys():    # are there any groups in the settings?
-##                                                # no - initialize with default values
-##            self._settings.setValue('gen/master_server', '')                          # masterServerLineEdit
-##            self._settings.setValue("gen/ddns_key_file", '')                          # ddnsKeyFileLineEdit
-##            self._settings.setValue("gen/ns_for_axfr", zad.common.IP_XFR_NS)          # serverForZoneTransferLineEdit
-##            self._settings.setValue("gen/initial_domain", zad.common.INITIAL_DOMAIN)  # initialDomainLineEdit
-##            self._settings.setValue("gen/default_ip4_prefix", '24')                     # defaultPrefixIPv4LineEdit
-##            self._settings.setValue("gen/default_ip6_prefix", '64')                     # defaultPrefixIPv6LineEdit
-##            self._settings.setValue("gen/log_file", zad.common.DEFAULT_LOG_PATH)      # logfileLineEdit
-##            self._settings.setValue("gen/debug", False)        # debugCheckBox
-    
-        self._read_all_settings()
-        
+
+        self._settings.beginGroup('gen')
+        keys = self._settings.childKeys()
+        self._settings.endGroup()
+        if len(keys) < 8:               # do we have something on fallback?
+                                        # no - initialize with default values and create fallback
+            self._settings.setValue('gen/master_server', '')  # masterServerLineEdit
+            self._settings.setValue("gen/ddns_key_file", '')  # ddnsKeyFileLineEdit
+            self._settings.setValue("gen/ns_for_axfr", zad.common.IP_XFR_NS)  # serverForZoneTransferLineEdit
+            self._settings.setValue("gen/initial_domain", zad.common.INITIAL_DOMAIN)  # initialDomainLineEdit
+            self._settings.setValue("gen/default_ip4_prefix", 24)  # defaultPrefixIPv4LineEdit
+            self._settings.setValue("gen/default_ip6_prefix", 64)  # defaultPrefixIPv6LineEdit
+            self._settings.setValue("gen/log_file", zad.common.DEFAULT_LOG_PATH)  # logfileLineEdit
+            self._settings.setValue("gen/debug", False)  # debugCheckBox
+
+            self._settings.sync()
+
+        self._read_all_settings()       # sync our vars with fallback
+
     @property
     def master_server(self):
             return self._master_server

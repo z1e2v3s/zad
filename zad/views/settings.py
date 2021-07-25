@@ -40,7 +40,7 @@ class ZaSettinsDialog(QtWidgets.QDialog,zad.pyuic.settings.Ui_settingsTabWidget)
 
         for lineEdit, prefName in ((self.masterServerLineEdit, 'master_server'),
                                    (self.ddnsKeyFileLineEdit, 'ddns_key_file'),
-                                   (self.serverForZoneTransferLineEdit, 'ddns_key_file'),
+                                   (self.serverForZoneTransferLineEdit, 'ns_for_axfr'),
                                    (self.initialDomainLineEdit, 'initial_domain'),
                                    (self.defaultPrefixIPv4LineEdit, 'default_ip4_prefix'),
                                    (self.defaultPrefixIPv6LineEdit, 'default_ip6_prefix'),
