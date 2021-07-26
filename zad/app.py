@@ -35,14 +35,14 @@ def run():
 
     setup()
     init_translations()
-    init_logging(zad.common.DEFAULT_LOG_PATH)
 
     zad.prefs = zad.models.settings.Prefs()
     zad.views.settings.setup()
+    init_logging(zad.prefs.log_file)
 
     ##zad.models.main.setup()
     zad.views.main.setup()
-    if zad.common.DEBUG: print('Before application.exec_()')
+    if zad.prefs.debug: print('Before application.exec_()')
     sys.exit(application.exec_())
 
 
@@ -72,7 +72,7 @@ def init_logging(path:str):
 
     logger = logging.getLogger()
     """
-    if zad.common.DEBUG:
+    if zad.prefs.debug:
         stdout_formatter = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
         
         stdout_handler = logging.StreamHandler(sys.stdout)
@@ -88,7 +88,7 @@ def init_logging(path:str):
                               '%m-%d-%Y %H:%M:%S')
 
     file_handler = logging.FileHandler(path)  ##FIXME##
-    if zad.common.DEBUG:
+    if zad.prefs.debug:
         ##file_handler.setLevel(logging.DEBUG)
         logger.setLevel(logging.DEBUG)
     else:

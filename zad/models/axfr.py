@@ -33,7 +33,7 @@ class RunThread(QtCore.QThread):
         self.loop = loop
         self.coro_loadZones = loadZones
         # create 1st zone
-        z = zad.common.INITIAL_DOMAIN
+        z = zad.prefs.initial_domain
         if z[-1] != '.':
             z += '.'
         domainZones[z] = DomainZone(z)
@@ -115,7 +115,7 @@ class Zone(object):
 
         runner.send_msg('Loading {} ...'.format(self.zone_name))
 
-        for ns in [zad.common.IP_XFR_NS]:
+        for ns in [zad.prefs.ns_for_axfr]:
             try:
                 l.info('[Loading zone {} from NS {}]'.format(self.zone_name, ns))
                 await do_axfr(ns, self.z)
@@ -157,7 +157,7 @@ class Zone(object):
                                                             row -2,
                                                             len(self.z.keys()),
                                                             self.zone_name))
-        logZones()
+        if zad.prefs.debug: logZones()
         runner.send_msg('Loading of {} completed with {} RRs'.format(self.zone_name, row -2))
         runner.send_zone_loaded(self.zone_name)
 
@@ -221,7 +221,7 @@ class Zone(object):
             ip6Zones[zoneName] = Ip6Zone(zoneName)
         elif dtype in ('NS', 'MX', 'CNAME', 'DNAME', 'PTR', 'SRV') and zoneName not in domainZones:
             domainZones[zoneName] = DomainZone(zoneName)
-        if zad.common.DEBUG: print('createZoneFromName: {} done'.format(fqdn))
+        if zad.prefs.debug: print('createZoneFromName: {} done'.format(fqdn))
 
 
 class DomainZone(Zone):
@@ -266,6 +266,7 @@ async def loadZones(runner: RunThread):
             await z.loadZone(runner)
             await asyncio.sleep(5)
         else:
+            logZones()
             runner.send_msg('All zones loaded.')
             break
 
