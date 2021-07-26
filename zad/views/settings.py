@@ -63,6 +63,7 @@ class ZaSettingsDialog(QtWidgets.QDialog,zad.pyuic.settings.Ui_settingsTabWidget
             lineEditView.writePref()
         self.preservedDebugState = self.debugCheckBox.isChecked()
         zad.prefs.debug = self.preservedDebugState
+        zad.prefs.sync()
 
     @QtCore.pyqtSlot(bool)
     def onRevert(self, checked):
