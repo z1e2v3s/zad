@@ -1,3 +1,4 @@
+import ipaddress
 import logging
 import pprint
 
@@ -222,8 +223,8 @@ class SetListsView(QtCore.QObject):
     @QtCore.pyqtSlot(bool)
     def onPlus(self, checked):
         text = self.lineEdit.text()
-        if not self.prefs or not text in self.prefs:
-            self.addPref(self.lineEdit.text())
+        if self.validateNet(text) and (not self.prefs or not text in self.prefs):
+            self.addPref(text)
             self.listWidget.addItem(text)
             self.plusButton.setDisabled(True)
         else:
@@ -240,17 +241,20 @@ class SetListsView(QtCore.QObject):
     def onOK(self, checked):
         row =self.listWidget.currentRow()
         if row:                                             # may called on defocus w/o current row
-            self.setPref(row, self.lineEdit.text())
-            self.listWidget.takeItem(self.listWidget.currentRow())
-            self.listWidget.addItem(self.lineEdit.text())
-            self.lineEdit.setText('')
-            self.preservedText = ''
-            self.plusButton.setDisabled(True)
-            self.minusButton.setDisabled(True)
-            self.revertButton.setDisabled(True)
-            self.okButton.setDisabled(True)
-            self.okButton.setDefault(False)
-
+            if self.validateNet(self.lineEdit.text()):
+                self.setPref(row, self.lineEdit.text())
+                self.listWidget.takeItem(self.listWidget.currentRow())
+                self.listWidget.addItem(self.lineEdit.text())
+                self.lineEdit.setText('')
+                self.preservedText = ''
+                self.plusButton.setDisabled(True)
+                self.minusButton.setDisabled(True)
+                self.revertButton.setDisabled(True)
+                self.okButton.setDisabled(True)
+                self.okButton.setDefault(False)
+            else:                                           # validation failed
+                zad.app.application.beep()
+                
     def connect_signals(self):
         self.listWidget.itemClicked.connect(self.onListItemClicked)
         self.lineEdit.textEdited.connect(self.onEdited)
@@ -281,19 +285,32 @@ class SetListsView(QtCore.QObject):
     def updatePrefs(self):
         zad.prefs._updateNetList(self.listPrefName, self.prefs)
 
+    def validateNet(self, netname) -> bool:
+        try:
+            if self.listPrefName == 'ip4_nets':
+                ipaddress.IPv4Network(netname)
+                return True
+            elif self.listPrefName == 'ip6_nets':
+                ipaddress.IPv6Network(netname)
+                return True
+            else:
+                try:
+                    ipaddress.IPv4Network(netname)
+                    return True
+                except:
+                    try:
+                        ipaddress.IPv6Network(netname)
+                        return True
+                    except:
+                        return False
+        except:
+            return False
+
+
     def printSettings(self, place):
         global sc
         print('Settings of list at {}:\n{}'.format(place, self.getPrefs()))
         print('Settings at {}:\n{}'.format(place, pprint.pprint(sc.as_dict())))
-
-
-class Tab1View(QtCore.QObject):
-    def __init__(self,
-        parent = None):
-        super(Tab1View, self).__init__(parent)
-
-        self.preservedText = ''
-
 
 
 def setup():
