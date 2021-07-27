@@ -38,6 +38,7 @@ class ZaSettingsDialog(QtWidgets.QDialog,zad.pyuic.settings.Ui_settingsTabWidget
         super(ZaSettingsDialog, self).__init__()
         self.setupUi(self)
         self.readSettings()
+        self.tabWidget.setCurrentWidget(self.GeneralTab)
         self.lineEditViews = []
         self.setListViews = []
 
