@@ -45,6 +45,11 @@
            </item>
            <item>
             <widget class="QTableView" name="tableView_1">
+             <property name="font">
+              <font>
+               <pointsize>11</pointsize>
+              </font>
+             </property>
              <property name="selectionMode">
               <enum>QAbstractItemView::SingleSelection</enum>
              </property>
@@ -69,6 +74,11 @@
            </item>
            <item>
             <widget class="QTableView" name="tableView_2">
+             <property name="font">
+              <font>
+               <pointsize>11</pointsize>
+              </font>
+             </property>
              <property name="selectionMode">
               <enum>QAbstractItemView::SingleSelection</enum>
              </property>
@@ -93,6 +103,11 @@
            </item>
            <item>
             <widget class="QTableView" name="tableView_3">
+             <property name="font">
+              <font>
+               <pointsize>11</pointsize>
+              </font>
+             </property>
              <property name="selectionMode">
               <enum>QAbstractItemView::SingleSelection</enum>
              </property>
@@ -199,45 +214,61 @@
            <property name="fieldGrowthPolicy">
             <enum>QFormLayout::ExpandingFieldsGrow</enum>
            </property>
-           <item row="0" column="0">
+           <item row="1" column="0">
             <widget class="QLabel" name="nameAddressLabel">
              <property name="text">
               <string>Name/Address</string>
              </property>
             </widget>
            </item>
-           <item row="0" column="1">
+           <item row="1" column="1">
             <widget class="QLineEdit" name="nameAddressEdit"/>
            </item>
-           <item row="1" column="0">
+           <item row="2" column="0">
             <widget class="QLabel" name="ttlLabel">
              <property name="text">
               <string>TTL</string>
              </property>
             </widget>
            </item>
-           <item row="1" column="1">
+           <item row="2" column="1">
             <widget class="QLineEdit" name="ttlEdit"/>
            </item>
-           <item row="2" column="0">
+           <item row="3" column="0">
             <widget class="QLabel" name="typeLabel">
              <property name="text">
               <string>Type</string>
              </property>
             </widget>
            </item>
-           <item row="2" column="1">
+           <item row="3" column="1">
             <widget class="QLineEdit" name="typeEdit"/>
            </item>
-           <item row="3" column="0">
+           <item row="4" column="0">
             <widget class="QLabel" name="rdataLabel">
              <property name="text">
               <string>Rdata</string>
              </property>
             </widget>
            </item>
-           <item row="3" column="1">
-            <widget class="QTextEdit" name="rdataEdit"/>
+           <item row="4" column="1">
+            <widget class="QTextEdit" name="rdataEdit">
+             <property name="font">
+              <font>
+               <pointsize>11</pointsize>
+              </font>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="hostLabel">
+             <property name="text">
+              <string>Host</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLineEdit" name="hostLineEdit"/>
            </item>
           </layout>
          </item>
