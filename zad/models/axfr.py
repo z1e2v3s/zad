@@ -85,8 +85,7 @@ class Zone(object):
 
         error = self.init_by_subclass   # bail out if not created as subclass
             
-        
-        self.zone_name = zone_name
+         self.zone_name = zone_name
         if self.zone_name[-1] != '.':
             self.zone_name += '.'
         self.zone_type: zad.common.ZoneTypes = None
@@ -230,6 +229,7 @@ class DomainZone(Zone):
         self.init_by_subclass = True
         self.type = zad.common.ZTDOM
         super(DomainZone, self).__init__(zone_name)
+        self.d = [['', '', '', '']]
 
 
 class Ip4Zone(Zone):
@@ -237,12 +237,15 @@ class Ip4Zone(Zone):
         self.init_by_subclass = True
         self.type = zad.common.ZTIP4
         super(Ip4Zone,self).__init__(zone_name)
+        self.d = [['', '', '', '','','']]
+
 
 class Ip6Zone(Zone):
     def __init__(self, zone_name):
         self.init_by_subclass = True
         self.type = zad.common.ZTIP6
         super(Ip6Zone,self).__init__(zone_name)
+        self.d = [['', '', '', '','','']]
 
 
 async def loadZones(runner: RunThread):

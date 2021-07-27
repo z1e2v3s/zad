@@ -18,10 +18,8 @@
 # limitations under the License.
 
 
-import zad.models.settings
 
-
-__author__ = "Axel Rau <axel.rau@chaos1,de>"
+__author__ = "Axel Rau <axel.rau∆chaos1,de>"
 __version__ = (0, 0, 1)
 __licence__ = "GNU General Public License Version 3"
 
@@ -36,8 +34,4 @@ def get_author():
 
 def get_author_email():
     return __author__.split(" <")[1][:-1]
-
-
-prefs: zad.models.settings.Prefs
-
 
