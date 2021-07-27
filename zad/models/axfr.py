@@ -262,6 +262,7 @@ async def loadZones(runner: RunThread):
         if zone_list:
             return zone_list[0]
         else:
+            time.sleep(5)
             return None
 
     while True:

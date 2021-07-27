@@ -128,7 +128,7 @@ class Prefs(QtCore.QObject):
     @debug.setter
     def debug(self, debug):
         self._debug = debug
-        self._settings.setValue('gen/debug', str(debug))
+        self._settings.setValue('gen/debug', debug)
 
     
     @property
