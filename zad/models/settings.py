@@ -187,7 +187,7 @@ class Prefs(QtCore.QObject):
         self._default_ip4_prefix = self._settings.value("gen/default_ip4_prefix")
         self._default_ip6_prefix = self._settings.value("gen/default_ip6_prefix")
         self._log_file = self._settings.value("gen/log_file")
-        self._debug = self._settings.value("gen/debug").lower in ('true', 'yes', '1', 't', 'y')
+        self._debug = self._settings.value("gen/debug")
     
         for name in ('ip4_nets', 'ip6_nets', 'ignored_nets'):
             lst = self.get_net_list(name)

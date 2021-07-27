@@ -85,7 +85,7 @@ class Zone(object):
 
         error = self.init_by_subclass   # bail out if not created as subclass
             
-         self.zone_name = zone_name
+        self.zone_name = zone_name
         if self.zone_name[-1] != '.':
             self.zone_name += '.'
         self.zone_type: zad.common.ZoneTypes = None
