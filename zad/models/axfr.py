@@ -111,26 +111,34 @@ class Zone(object):
 
     async def loadZone(self, runner: RunThread):
         row = 0
-        self.z =  dns.zone.Zone(self.zone_name, relativize=False)
-
+        self.z = dns.zone.Zone(self.zone_name, relativize=False)
         runner.send_msg('Loading {} ...'.format(self.zone_name))
+        ns = zad.prefs.ns_for_axfr
+        ok = False
 
-        for ns in [zad.prefs.ns_for_axfr]:
-            try:
-                l.info('[Loading zone {} from NS {}]'.format(self.zone_name, ns))
-                await do_axfr(ns, self.z)
-                break
-            except dns.xfr.TransferError:
-                l.error('%loadZone: {} AXFR failed with NS={}'.format(self.zone_name, ns))
-            except BaseException:
-                l.error('%loadZone: {} Error on AXFR with NS={}'.format(self.zone_name, ns))
-            
-        else:
+        try:
+            l.info('[Loading zone {} from NS {}]'.format(self.zone_name, ns))
+            await do_axfr(ns, self.z)
+            ok = True
+        except dns.xfr.TransferError:
+            l.error('?loadZone: {} AXFR failed with NS={}'.format(self.zone_name, ns))
+            runner.send_msg('?loadZone {} failed. Giving up.'.format(self.zone_name))
+        except BaseException:
+            l.error('%loadZone: {} Error on AXFR with NS={}, \n because {} - {}'.format(self.zone_name,
+                                                                                        ns,
+                                                                                        sys.exc_info()[0].__name__,
+                                                                                        str(sys.exc_info()[1])))
+            runner.send_msg('%loadZone: {} Error on AXFR with NS={}, because {} - {}'.format(self.zone_name,
+                                                                                        ns,
+                                                                                        sys.exc_info()[0].__name__,
+                                                                                        str(sys.exc_info()[1])))
+
+        if not ok:
             l.error('?loadZone {} failed. Giving up.'.format(self.zone_name))
             runner.send_msg('?loadZone {} failed. Giving up.'.format(self.zone_name))
             self.d = [['', '', '', ''], ['', '', '', '']]
             return
-        
+
         l.debug('[loadZone: zone={}, AXFR of {} nodes done'.format(self.zone_name, len(self.z.keys())))
         for k in self.z.keys():
             zn = name = str(k)
@@ -288,7 +296,7 @@ def logZones():
             i += 1
         for k in d.keys():
             z = d[k]
-            l.info('{}{}'.format(k, '[loaded]' if len(z.d) > 1 else ''))
+            l.info('{}{}'.format(k, '[loaded]' if z.valid else ''))
 
 def setupResolver(resolver_addresses):
 
