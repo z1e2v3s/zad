@@ -102,6 +102,22 @@ class Zone(object):
         self.d = [['', '', '', '', '', '']] # name, ttl, type, rdata, host, net
         self.valid = False
 
+        self.getNetsFromPrefs()
+        
+        self.nets = {}
+
+        if ':' in self.zone_name:
+            self.default_net_mask = int(ipaddress.IPv6Network('1::/{}'.format(
+                                                zad.prefs.default_ip6_prefix)).netmask)
+            self.default_host_mask = int(ipaddress.IPv6Network('1::/{}'.format(
+                zad.prefs.default_ip6_prefix)).hostmask)
+        else:
+            self.default_net_mask = int(ipaddress.IPv4Network('1.0.0.0/{}'.format(
+                                                zad.prefs.default_ip4_prefix)).netmask)
+            self.default_host_mask = int(ipaddress.IPv4Network('1.0.0.0/{}'.format(
+                                                zad.prefs.default_ip4_prefix)).hostmask)
+
+
     def data(self, row: int, column: int) -> str:
         if not self.z:
             self.loadZone()          
@@ -171,12 +187,12 @@ class Zone(object):
                 name = ''
             self.d[row][0] = name
             if not first:
-                host = dns.reversename.to_address(dns.name.from_text(name))
-            else:
-                host = ''
+                addr = dns.reversename.to_address(dns.name.from_text(name))
+                (net, host) = self.addNet(addr)
+                print('host={}, name={}, net={}'.format(host, name, net))
+                self.d[row][4] = host
+                self.d[row][5] = net
             first = False
-            print('host={}, name={}'.format(host, name))
-            self.d[row][4] = host
             node = self.z[zn]
             for the_rdataset in node:
                 self.d[row][1] = str(the_rdataset.ttl)
@@ -269,6 +285,68 @@ class Zone(object):
         elif dtype in ('NS', 'MX', 'CNAME', 'DNAME', 'PTR', 'SRV') and zoneName not in domainZones:
             domainZones[zoneName] = DomainZone(zoneName)
         if zad.prefs.debug: print('createZoneFromName: {} done'.format(fqdn))
+
+    def getNetsFromPrefs(self):
+        if not ip4Nets and zad.prefs.ip4_nets:
+            for net in zad.prefs.ip4_nets:
+                ip4Nets[net] = ipaddress.IPv4Network(net)
+        if not ip6Nets and zad.prefs.ip6_nets:
+            for net in zad.prefs.ip6_nets:
+                ip6Nets[net] = ipaddress.IPv6Network(net)
+
+    def addNet(self, address) -> (str, str):
+        """
+        return tuple of net and host as strings
+        """
+
+        if ':' in address:                              # IPv6
+            if self.zone_name.endswith('in-addr.arpa.'):
+                l.error('?IPv4 address {} in IPv6 zone {} - ignored'.format(address, self.zone_name))
+                l.runner.send_msg('?IPv4 address {} in IPv6 zone {} - ignored'.format(address, self.zone_name))
+                return ('', '')
+            
+            a = ipaddress.IPv6Address(address)
+            for k, v in self.nets.items():              # { netname: netobject }
+                if a in v:
+                    return (k,
+                            str(ipaddress.IPv6Address(int(a) & int(v.hostmask)))[2:])
+            for k, v in ip6Nets.items():                # { netname: netobject }
+                if a in v:
+                    if not a in self.nets:
+                        self.nets[k] = v
+                    return (k,
+                            str(ipaddress.IPv6Address(int(a) & int(v.hostmask)))[2:])
+            n = ipaddress.IPv6Network((int(a) & self.default_net_mask, int(zad.prefs.default_ip6_prefix)))
+            self.nets[str(n)] = n
+            ip6Nets[str(n)] = n
+            return (str(n),
+                    str(ipaddress.IPv6Address(int(a) & int(n.hostmask)))[2:])
+
+        elif '.' in address:                            # IPv4
+            if self.zone_name.endswith('ip6.arpa.'):
+                l.error('?IPv6 address {} in IPv4 zone {} - ignored'.format(address, self.zone_name))
+                l.runner.send_msg('?IPv6 address {} in IPv4 zone {} - ignored'.format(address, self.zone_name))
+                return ('', '')
+                
+            a = ipaddress.IPv4Address(address)
+            for k, v in self.nets.items():              # { netname: netobject }
+                if a in v:
+                    return (k,
+                            str(ipaddress.IPv4Address(int(a) & int(v.hostmask))))   # remove leading '0.'
+            for k, v in ip4Nets.items():                # { netname: netobject }
+                if a in v:
+                    if not a in self.nets:
+                        self.nets[k] = v
+                    return (k,
+                            str(ipaddress.IPv4Address(int(a) & int(v.hostmask))))  # remove leading '0.'
+            n = ipaddress.IPv4Network((int(a) & self.default_net_mask, int(zad.prefs.default_ip4_prefix)))
+            self.nets[str(n)] = n
+            ip4Nets[str(n)] = n
+            return (str(n),
+                    str(ipaddress.IPv4Address(int(a) & int(n.hostmask))))   # remove leading '0.'
+
+        else:
+            assert 1 == 2, 'Zone.addNet received invalid address "{}"'.format(address)
 
 
 class DomainZone(Zone):
