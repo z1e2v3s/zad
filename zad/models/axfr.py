@@ -106,11 +106,11 @@ class Zone(object):
         
         self.nets = {}
 
-        if ':' in self.zone_name:
+        if self.zone_name.endswith('ip6.arpa.'):
             self.default_net_mask = int(ipaddress.IPv6Network('1::/{}'.format(
                                                 zad.prefs.default_ip6_prefix)).netmask)
             self.default_host_mask = int(ipaddress.IPv6Network('1::/{}'.format(
-                zad.prefs.default_ip6_prefix)).hostmask)
+                                                zad.prefs.default_ip6_prefix)).hostmask)
         else:
             self.default_net_mask = int(ipaddress.IPv4Network('1.0.0.0/{}'.format(
                                                 zad.prefs.default_ip4_prefix)).netmask)
@@ -316,7 +316,14 @@ class Zone(object):
                         self.nets[k] = v
                     return (k,
                             str(ipaddress.IPv6Address(int(a) & int(v.hostmask)))[2:])
-            n = ipaddress.IPv6Network((int(a) & self.default_net_mask, int(zad.prefs.default_ip6_prefix)))
+            try:
+                n = ipaddress.IPv6Network((int(a) & self.default_net_mask, int(zad.prefs.default_ip6_prefix)))
+            except ValueError:
+                l.error('?ValueError: IPv6 address {} in IPv6 zone {}, with mask {}'.format(
+                                                                address, self.zone_name, hex(self.default_net_mask)))
+                l.runner.send_msg('?ValueError: IPv6 address {} in IPv6 zone {}, with mask {}'.format(
+                                                                address, self.zone_name, hex(self.default_net_mask)))
+                return ('', '')
             self.nets[str(n)] = n
             ip6Nets[str(n)] = n
             return (str(n),
@@ -471,7 +478,6 @@ async def loadZones(runner: RunThread):
         if zone_list:
             return zone_list[0]
         else:
-            time.sleep(5)
             return None
 
     while True:
@@ -482,6 +488,7 @@ async def loadZones(runner: RunThread):
         else:
             logZones()
             runner.send_msg('All zones loaded.')
+            time.sleep(5)
             break
 
 def logZones():
