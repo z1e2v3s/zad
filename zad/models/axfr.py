@@ -1,6 +1,7 @@
 import asyncio
 import ipaddress
 import logging
+import re
 import sys
 import time
 
@@ -209,7 +210,7 @@ class Zone(object):
                             if zad.prefs.debug: print('{}  {}'.format(a, name))
                         elif srdatatype == 'SOA' and srdata.endswith('.arpa.'):
                             a = dns.reversename.to_address(self.zone_name)
-                            if zad.prefs.debug: print('{}  {}'.format(a, zone_name))
+                            if zad.prefs.debug: print('{}  {}'.format(a, self.zone_name))
                         await self.createZoneFromName(srdatatype, srdata)
                         row = row + 1
                         self.d.append(['', '', '', '', '', ''])
@@ -330,6 +331,10 @@ class Zone(object):
                     str(ipaddress.IPv6Address(int(a) & int(n.hostmask)))[2:])
 
         elif '.' in address:                            # IPv4
+            def trimmHost(addr, net):
+                m = re.match(r'^(0\.)+(.*)', str(ipaddress.IPv4Address(int(addr) & int(net.hostmask))), re.A)
+                return m
+
             if self.zone_name.endswith('ip6.arpa.'):
                 l.error('?IPv6 address {} in IPv4 zone {} - ignored'.format(address, self.zone_name))
                 l.runner.send_msg('?IPv6 address {} in IPv4 zone {} - ignored'.format(address, self.zone_name))
@@ -339,18 +344,18 @@ class Zone(object):
             for k, v in self.nets.items():              # { netname: netobject }
                 if a in v:
                     return (k,
-                            str(ipaddress.IPv4Address(int(a) & int(v.hostmask))))   # remove leading '0.'
+                            trimmHost(a, v))
             for k, v in ip4Nets.items():                # { netname: netobject }
                 if a in v:
                     if not a in self.nets:
                         self.nets[k] = v
                     return (k,
-                            str(ipaddress.IPv4Address(int(a) & int(v.hostmask))))  # remove leading '0.'
+                            trimmHost(a, v))
             n = ipaddress.IPv4Network((int(a) & self.default_net_mask, int(zad.prefs.default_ip4_prefix)))
             self.nets[str(n)] = n
             ip4Nets[str(n)] = n
             return (str(n),
-                    str(ipaddress.IPv4Address(int(a) & int(n.hostmask))))   # remove leading '0.'
+                    trimmHost(a, n))
 
         else:
             assert 1 == 2, 'Zone.addNet received invalid address "{}"'.format(address)
@@ -434,7 +439,7 @@ class DomainZone(Zone):
                             if zad.prefs.debug: print('{}  {}'.format(a, name))
                         elif srdatatype == 'SOA' and srdata.endswith('.arpa.'):
                             a = dns.reversename.to_address(self.zone_name)
-                            if zad.prefs.debug: print('{}  {}'.format(a, zone_name))
+                            if zad.prefs.debug: print('{}  {}'.format(a, self.zone_name))
                         await self.createZoneFromName(srdatatype, srdata)
                         row = row + 1
                         self.d.append(['', '', '', ''])
