@@ -172,14 +172,6 @@ class Zone(object):
             l.error('% {} has no {}'.format(self.zone_name, err))
             runner.send_msg('% {} has no {}'.format(self.zone_name, err))
 
-        ##origin = self.z.origin_information()[0]                     # absolute origin
-        ##if self.zone_name.endswith('.in-addr.arpa.'):               # IPv4
-        ##    l4 = origin.split('.')                                  # fill host part with zeros
-
-            ##print('========== origin={}'.format(str(origin)))
-            ##net = dns.reversename.to_address(dns.name.from_text(origin))
-            #net = dns.reversename.to_address(dns.name(str(origin)))
-            #print('========== origin={}, net={}'.format(origin, net))
         l.debug('[loadZone: zone={}, AXFR of {} nodes done'.format(self.zone_name, len(self.z.keys())))
         first = True
         for k in self.z.keys():
@@ -190,7 +182,7 @@ class Zone(object):
             if not first:
                 addr = dns.reversename.to_address(dns.name.from_text(name))
                 (net, host) = self.addNet(addr)
-                print('host={}, name={}, net={}'.format(host, name, net))
+                l.debug('host={}, name={}, net={}'.format(host, name, net))
                 self.d[row][4] = host
                 self.d[row][5] = net
             first = False
@@ -510,6 +502,8 @@ def logZones():
         for k in d.keys():
             z = d[k]
             l.info('{}{}'.format(k, '[loaded]' if z.valid else ''))
+            for n in z.nets.keys():
+                l.info('        {}'.format(n))
 
 def setupResolver(resolver_addresses):
 
