@@ -1,6 +1,8 @@
 import asyncio
 import ipaddress
 import logging
+import operator
+import re
 import sys
 import time
 
@@ -69,6 +71,21 @@ async def do_zoneName(fqdn):
     return str(z)
 
 
+# Subclasses, which store per net display data
+
+class Ip4ZadNet(ipaddress.IPv4Network):
+
+    def __init__(self, address, strict=True):
+        super(Ip4ZadNet, self).__init__(address, strict)
+        self.data = []
+
+class Ip6ZadNet(ipaddress.IPv6Network):
+
+    def __init__(self, address, strict=True):
+        super(Ip6ZadNet, self).__init__(address, strict)
+        self.data = []
+
+
 class Zone(object):
 
     def zoneByName(zone_name):
@@ -99,67 +116,159 @@ class Zone(object):
             domainZones[self.zone_name] = self
             
         self.z = None
-        self.d = [['', '', '', '']]
         self.valid = False
+
+        self.getNetsFromPrefs()
+        
+        self.nets = {}              # netname: ipaddress.IpNetwork object
+
+        if self.zone_name.endswith('ip6.arpa.'):
+            self.default_net_mask = int(ipaddress.IPv6Network('1::/{}'.format(
+                                                zad.prefs.default_ip6_prefix)).netmask)
+            self.default_host_mask = int(ipaddress.IPv6Network('1::/{}'.format(
+                                                zad.prefs.default_ip6_prefix)).hostmask)
+        else:
+            self.default_net_mask = int(Ip4ZadNet('1.0.0.0/{}'.format(
+                                                zad.prefs.default_ip4_prefix)).netmask)
+            self.default_host_mask = int(Ip4ZadNet('1.0.0.0/{}'.format(
+                                                zad.prefs.default_ip4_prefix)).hostmask)
+
 
     def data(self, row: int, column: int) -> str:
         if not self.z:
-            self.loadZone()          
+            ## self.loadZone()          # FIXME: missing runner
+            return ''
         v = self.d[row][column]
-        if not v: v = ''
+        if not v:
+            v = ''
         return str(v)
 
     async def loadZone(self, runner: RunThread):
-        row = 0
-        self.z =  dns.zone.Zone(self.zone_name, relativize=False)
+        """
+        Inherited by Ip4Zone and Ip6Zone
+        """
 
+        # get zone data per zone transfer
+        
+        self.z = dns.zone.Zone(self.zone_name, relativize=False)
         runner.send_msg('Loading {} ...'.format(self.zone_name))
+        ns = zad.prefs.ns_for_axfr
+        ok = False
 
-        for ns in [zad.prefs.ns_for_axfr]:
-            try:
-                l.info('[Loading zone {} from NS {}]'.format(self.zone_name, ns))
-                await do_axfr(ns, self.z)
-                break
-            except dns.xfr.TransferError:
-                l.error('%loadZone: {} AXFR failed with NS={}'.format(self.zone_name, ns))
-            except BaseException:
-                l.error('%loadZone: {} Error on AXFR with NS={}'.format(self.zone_name, ns))
-            
-        else:
+        try:
+            l.info('[Loading zone {} from NS {}]'.format(self.zone_name, ns))
+            await do_axfr(ns, self.z)
+            ok = True
+        except dns.xfr.TransferError:
+            l.error('?loadZone: {} AXFR failed with NS={}'.format(self.zone_name, ns))
+            runner.send_msg('?loadZone {} failed. Giving up.'.format(self.zone_name))
+        except BaseException:
+            l.error('%loadZone: {} Error on AXFR with NS={}, \n because {} - {}'.format(self.zone_name,
+                                                                                        ns,
+                                                                                        sys.exc_info()[0].__name__,
+                                                                                        str(sys.exc_info()[1])))
+            runner.send_msg('%loadZone: {} Error on AXFR with NS={}, because {} - {}'.format(self.zone_name,
+                                                                                        ns,
+                                                                                        sys.exc_info()[0].__name__,
+                                                                                        str(sys.exc_info()[1])))
+
+        if not ok:
             l.error('?loadZone {} failed. Giving up.'.format(self.zone_name))
             runner.send_msg('?loadZone {} failed. Giving up.'.format(self.zone_name))
-            self.d = [['', '', '', ''], ['', '', '', '']]
+            self.d = [['', '', '', '', '', ''], ['', '', '', '', '', '']]
             return
-        
+
+        err = ''
+        try:
+            self.z.check_origin()
+        except dns.zone.NoSOA:
+            err = 'SOA RRset'
+        except dns.zone.NoNS:
+            err = 'NS RRset'
+        except KeyError:
+            err = 'origin node'
+        if err:
+            l.error('% {} has no {}'.format(self.zone_name, err))
+            runner.send_msg('% {} has no {}'.format(self.zone_name, err))
+
         l.debug('[loadZone: zone={}, AXFR of {} nodes done'.format(self.zone_name, len(self.z.keys())))
+
+        # now parse and store zone data in a nested list (nodes)
+        
+        prefix = '0x' if self.zone_name.endswith('.ip6.arpa.') else ''  #hex host addresses if IPv6
+        nodes = []                                  # [host, rrs]   accumulated here
+        first = True
         for k in self.z.keys():
             zn = name = str(k)
-            if name == '@': name = ''
-            self.d[row][0] = name
+            if name == '@':
+                name = self.zone_name
+            rrs = [['', '', '', '', '', '']]        # name, ttl, type, rdata, host, net
+            i = 0                                   # index in rrs
+            rrs[i][0] = name
+            if not first:
+                addr = dns.reversename.to_address(dns.name.from_text(name))
+                (net, host) = self.addNet(addr)
+                l.debug('host={}, name={}, net={}'.format(host, name, net))
+                rrs[i][4] = host
+                rrs[i][5] = net
+            first = False
             node = self.z[zn]
-            for the_rdataset in node:
-                self.d[row][1] = str(the_rdataset.ttl)
+            for the_rdataset in node:               # rdatasets of current node collected in rrs
+                rrs[i][1] = str(the_rdataset.ttl)
                 for rdata in the_rdataset:
                     srdatatype = dns.rdatatype.to_text(the_rdataset.rdtype)
                     if srdatatype not in ('RRSIG', 'NSEC', 'NSEC3'):
-                        self.d[row][2] = srdatatype
+                        rrs[i][2] = srdatatype
                         srdata = str(rdata)
-                        self.d[row][3] = srdata
+                        rrs[i][3] = srdata
                         if srdatatype == 'MX':
                             srdata = str(rdata.exchange)
+                        elif srdatatype == 'PTR':
+                            a = dns.reversename.to_address(k)
+                            if zad.prefs.debug: print('{}  {}'.format(a, name))
+                        elif srdatatype == 'SOA' and srdata.endswith('.arpa.'):
+                            a = dns.reversename.to_address(self.zone_name)
+                            if zad.prefs.debug: print('{}  {}'.format(a, self.zone_name))
                         await self.createZoneFromName(srdatatype, srdata)
-                        row = row + 1
-                        self.d.append(['', '', '', ''])
+                        i = i + 1
+                        rrs.append(['', '', '', '', '', ''])
                     ##l.debug('.', end=' ', flush=True)
                 ##l.debug('+', end=' ', flush=True)
-        self.valid = True
-        l.info('[loadZone: {} RRs out of {} nodes from zone {} loaded.]'.format(
-                                                            row -2,
-                                                            len(self.z.keys()),
-                                                            self.zone_name))
-        if zad.prefs.debug: logZones()
-        runner.send_msg('Loading of {} completed with {} RRs'.format(self.zone_name, row -2))
+
+            nodes.append((prefix+host, rrs))        # host, [related rdatasets]
+
+        # sort by host number (decimal if IP4 or hex if IP6 [with prefix 0x])
+        sorted(nodes, key=operator.itemgetter(0))
+
+        # now sort out net related nodes and store it as row list per net in net.data
+
+        row = 0                                     # index in net.data
+        for net_name, net in self.nets.items():
+            net.data = ['', '', '', '', '']
+            for node in nodes:
+                first = True
+                sort_host, rrs = node
+                for rr in rrs:
+                    if not (first or rr[5] == net_name):
+                        break                       # skip loop if neither apex nor matching net
+                    net.data[row,0] = rr[4]         # host number
+                    net.data[row,1] = rr[0]         # origin name
+                    net.data[row,2] = rr[1]         # ttl
+                    net.data[row,3] = rr[2]         # rtype
+                    net.data[row,4] = rr[3]         # rdata
+
+                    net.data.append(['', '', '', '', ''])
+
+            if zad.prefs.debug:
+                logZones()
+                runner.send_msg('Loading of {}, net {} completed with {} RRs'.format(
+                                                                self.zone_name, net_name, len(nodes)))
+
+                l.debug('Loading of {}, net {} completed with {} RRs'.format(
+                                                                self.zone_name, net_name, len(nodes)))
         runner.send_zone_loaded(self.zone_name)
+        self.valid = True
+
 
     async def createZoneFromName(self, dtype, name):
         global domainZones, ip4Zones, ip6Zones
@@ -223,6 +332,79 @@ class Zone(object):
             domainZones[zoneName] = DomainZone(zoneName)
         if zad.prefs.debug: print('createZoneFromName: {} done'.format(fqdn))
 
+    def getNetsFromPrefs(self):
+        if not ip4Nets and zad.prefs.ip4_nets:
+            for net in zad.prefs.ip4_nets:
+                ip4Nets[net] = ipaddress.IPv4Network(net)
+        if not ip6Nets and zad.prefs.ip6_nets:
+            for net in zad.prefs.ip6_nets:
+                ip6Nets[net] = ipaddress.IPv6Network(net)
+
+    def addNet(self, address) -> (str, str):
+        """
+        return tuple of net and host as strings
+        """
+
+        if ':' in address:                              # IPv6
+            if self.zone_name.endswith('in-addr.arpa.'):
+                l.error('?IPv4 address {} in IPv6 zone {} - ignored'.format(address, self.zone_name))
+                l.runner.send_msg('?IPv4 address {} in IPv6 zone {} - ignored'.format(address, self.zone_name))
+                return ('', '')
+            
+            a = ipaddress.IPv6Address(address)
+            for k, v in self.nets.items():              # { netname: netobject }
+                if a in v:
+                    return (k,
+                            str(ipaddress.IPv6Address(int(a) & int(v.hostmask)))[2:])
+            for k, v in ip6Nets.items():                # { netname: netobject }
+                if a in v:
+                    if not a in self.nets:
+                        self.nets[k] = v
+                    return (k,
+                            str(ipaddress.IPv6Address(int(a) & int(v.hostmask)))[2:])
+            try:
+                n = Ip6ZadNet((int(a) & self.default_net_mask, int(zad.prefs.default_ip6_prefix)))
+            except ValueError:
+                l.error('?ValueError: IPv6 address {} in IPv6 zone {}, with mask {}'.format(
+                                                                address, self.zone_name, hex(self.default_net_mask)))
+                l.runner.send_msg('?ValueError: IPv6 address {} in IPv6 zone {}, with mask {}'.format(
+                                                                address, self.zone_name, hex(self.default_net_mask)))
+                return ('', '')
+            self.nets[str(n)] = n
+            ip6Nets[str(n)] = n
+            return (str(n),
+                    str(ipaddress.IPv6Address(int(a) & int(n.hostmask)))[2:])
+
+        elif '.' in address:                            # IPv4
+            def trimmHost(addr, net):
+                m = re.match(r'^(0\.)+(.*)', str(ipaddress.IPv4Address(int(addr) & int(net.hostmask))), re.A)
+                return m
+
+            if self.zone_name.endswith('ip6.arpa.'):
+                l.error('?IPv6 address {} in IPv4 zone {} - ignored'.format(address, self.zone_name))
+                l.runner.send_msg('?IPv6 address {} in IPv4 zone {} - ignored'.format(address, self.zone_name))
+                return ('', '')
+                
+            a = ipaddress.IPv4Address(address)
+            for k, v in self.nets.items():              # { netname: netobject }
+                if a in v:
+                    return (k,
+                            trimmHost(a, v))
+            for k, v in ip4Nets.items():                # { netname: netobject }
+                if a in v:
+                    if not a in self.nets:
+                        self.nets[k] = v
+                    return (k,
+                            trimmHost(a, v))
+            n = ipaddress.IPv4Network((int(a) & self.default_net_mask, int(zad.prefs.default_ip4_prefix)))
+            self.nets[str(n)] = n
+            ip4Nets[str(n)] = n
+            return (str(n),
+                    trimmHost(a, n))
+
+        else:
+            assert 1 == 2, 'Zone.addNet received invalid address "{}"'.format(address)
+
 
 class DomainZone(Zone):
     def __init__(self, zone_name):
@@ -231,13 +413,98 @@ class DomainZone(Zone):
         super(DomainZone, self).__init__(zone_name)
         self.d = [['', '', '', '']]
 
+    def data(self, row: int, column: int) -> str:
+        if not self.z:
+            self.loadZone()
+        v = self.d[row][column]
+        if not v: v = ''
+        return str(v)
+
+    async def loadZone(self, runner: RunThread):
+        row = 0
+        self.z = dns.zone.Zone(self.zone_name, relativize=False)
+        runner.send_msg('Loading {} ...'.format(self.zone_name))
+        ns = zad.prefs.ns_for_axfr
+        ok = False
+
+        try:
+            l.info('[Loading zone {} from NS {}]'.format(self.zone_name, ns))
+            await do_axfr(ns, self.z)
+            ok = True
+        except dns.xfr.TransferError:
+            l.error('?loadZone: {} AXFR failed with NS={}'.format(self.zone_name, ns))
+            runner.send_msg('?loadZone {} failed. Giving up.'.format(self.zone_name))
+        except BaseException:
+            l.error('%loadZone: {} Error on AXFR with NS={}, \n because {} - {}'.format(self.zone_name,
+                                                                                        ns,
+                                                                                        sys.exc_info()[0].__name__,
+                                                                                        str(sys.exc_info()[1])))
+            runner.send_msg('%loadZone: {} Error on AXFR with NS={}, because {} - {}'.format(self.zone_name,
+                                                                                        ns,
+                                                                                        sys.exc_info()[0].__name__,
+                                                                                        str(sys.exc_info()[1])))
+
+        if not ok:
+            l.error('?loadZone {} failed. Giving up.'.format(self.zone_name))
+            runner.send_msg('?loadZone {} failed. Giving up.'.format(self.zone_name))
+            self.d = [['', '', '', ''], ['', '', '', '']]
+            return
+
+        err = ''
+        try:
+            self.z.check_origin()
+        except dns.zone.NoSOA:
+            err = 'SOA RRset'
+        except dns.zone.NoNS:
+            err = 'NS RRset'
+        except KeyError:
+            err = 'origin node'
+        if err:
+            l.error('% {} has no {}'.format(self.zone_name, err))
+            runner.send_msg('% {} has no {}'.format(self.zone_name, err))
+
+        l.debug('[loadZone: zone={}, AXFR of {} nodes done'.format(self.zone_name, len(self.z.keys())))
+        for k in self.z.keys():
+            zn = name = str(k)
+            if name == '@': name = ''
+            self.d[row][0] = name
+            node = self.z[zn]
+            for the_rdataset in node:
+                self.d[row][1] = str(the_rdataset.ttl)
+                for rdata in the_rdataset:
+                    srdatatype = dns.rdatatype.to_text(the_rdataset.rdtype)
+                    if srdatatype not in ('RRSIG', 'NSEC', 'NSEC3'):
+                        self.d[row][2] = srdatatype
+                        srdata = str(rdata)
+                        self.d[row][3] = srdata
+                        if srdatatype == 'MX':
+                            srdata = str(rdata.exchange)
+                        elif srdatatype == 'PTR':
+                            a = dns.reversename.to_address(k)
+                            if zad.prefs.debug: print('{}  {}'.format(a, name))
+                        elif srdatatype == 'SOA' and srdata.endswith('.arpa.'):
+                            a = dns.reversename.to_address(self.zone_name)
+                            if zad.prefs.debug: print('{}  {}'.format(a, self.zone_name))
+                        await self.createZoneFromName(srdatatype, srdata)
+                        row = row + 1
+                        self.d.append(['', '', '', ''])
+                    ##l.debug('.', end=' ', flush=True)
+                ##l.debug('+', end=' ', flush=True)
+        self.valid = True
+        l.info('[{} RRs out of {} nodes from zone {} parsed and linked.]'.format(
+                                                            row -2,
+                                                            len(self.z.keys()),
+                                                            self.zone_name))
+        if zad.prefs.debug: logZones()
+        runner.send_msg('Loading of {} completed with {} RRs'.format(self.zone_name, row -2))
+        runner.send_zone_loaded(self.zone_name)
+
 
 class Ip4Zone(Zone):
     def __init__(self, zone_name):
         self.init_by_subclass = True
         self.type = zad.common.ZTIP4
         super(Ip4Zone,self).__init__(zone_name)
-        self.d = [['', '', '', '','','']]
 
 
 class Ip6Zone(Zone):
@@ -245,7 +512,6 @@ class Ip6Zone(Zone):
         self.init_by_subclass = True
         self.type = zad.common.ZTIP6
         super(Ip6Zone,self).__init__(zone_name)
-        self.d = [['', '', '', '','','']]
 
 
 async def loadZones(runner: RunThread):
@@ -262,7 +528,6 @@ async def loadZones(runner: RunThread):
         if zone_list:
             return zone_list[0]
         else:
-            time.sleep(5)
             return None
 
     while True:
@@ -273,6 +538,7 @@ async def loadZones(runner: RunThread):
         else:
             logZones()
             runner.send_msg('All zones loaded.')
+            time.sleep(5)
             break
 
 def logZones():
@@ -288,7 +554,9 @@ def logZones():
             i += 1
         for k in d.keys():
             z = d[k]
-            l.info('{}{}'.format(k, '[loaded]' if len(z.d) > 1 else ''))
+            l.info('{}{}'.format(k, '[loaded]' if z.valid else ''))
+            for n in z.nets.keys():
+                l.info('        {}'.format(n))
 
 def setupResolver(resolver_addresses):
 

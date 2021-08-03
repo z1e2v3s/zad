@@ -42,10 +42,10 @@ class Prefs(QtCore.QObject):
             self._settings.setValue("gen/ddns_key_file", '')  # ddnsKeyFileLineEdit
             self._settings.setValue("gen/ns_for_axfr", zad.common.IP_XFR_NS)  # serverForZoneTransferLineEdit
             self._settings.setValue("gen/initial_domain", zad.common.INITIAL_DOMAIN)  # initialDomainLineEdit
-            self._settings.setValue("gen/default_ip4_prefix", 24)  # defaultPrefixIPv4LineEdit
-            self._settings.setValue("gen/default_ip6_prefix", 64)  # defaultPrefixIPv6LineEdit
+            self._settings.setValue("gen/default_ip4_prefix", '24')  # defaultPrefixIPv4LineEdit
+            self._settings.setValue("gen/default_ip6_prefix", '64')  # defaultPrefixIPv6LineEdit
             self._settings.setValue("gen/log_file", zad.common.DEFAULT_LOG_PATH)  # logfileLineEdit
-            self._settings.setValue("gen/debug", False)  # debugCheckBox
+            self._settings.setValue("gen/debug", 'False')  # debugCheckBox
 
             self._settings.sync()
 
@@ -128,7 +128,7 @@ class Prefs(QtCore.QObject):
     @debug.setter
     def debug(self, debug):
         self._debug = debug
-        self._settings.setValue('gen/debug', debug)
+        self._settings.setValue('gen/debug', str(debug))
 
     
     @property
@@ -184,11 +184,11 @@ class Prefs(QtCore.QObject):
         self._ddns_key_file = self._settings.value("gen/ddns_key_file")
         self._ns_for_axfr = self._settings.value("gen/ns_for_axfr")
         self._initial_domain = self._settings.value("gen/initial_domain")
-        self._default_ip4_prefix = self._settings.value("gen/default_ip4_prefix")
-        self._default_ip6_prefix = self._settings.value("gen/default_ip6_prefix")
+        self._default_ip4_prefix = int(self._settings.value("gen/default_ip4_prefix"))
+        self._default_ip6_prefix = int(self._settings.value("gen/default_ip6_prefix"))
         self._log_file = self._settings.value("gen/log_file")
-        self._debug = self._settings.value("gen/debug")
-    
+        self._debug = self._settings.value("gen/debug").lower() in ('true', 'yes', '1', 't', 'y')
+
         for name in ('ip4_nets', 'ip6_nets', 'ignored_nets'):
             lst = self.get_net_list(name)
             setattr(self, '_' + name, lst)
