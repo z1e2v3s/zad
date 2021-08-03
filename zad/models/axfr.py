@@ -117,6 +117,7 @@ class Zone(object):
             
         self.z = None
         self.valid = False
+        self.unreachable = False
 
         self.getNetsFromPrefs()
         
@@ -205,11 +206,15 @@ class Zone(object):
             rrs = [['', '', '', '', '', '']]        # name, ttl, type, rdata, host, net
             i = 0                                   # index in rrs
             rrs[i][0] = name
+            host = 0
             if not first:
                 addr = dns.reversename.to_address(dns.name.from_text(name))
-                (net, host) = self.addNet(addr)
+                (net, host) = self.addNet(addr)     # net_name, host as int
                 l.debug('host={}, name={}, net={}'.format(host, name, net))
-                rrs[i][4] = host
+                if self.type == zad.common.ZTIP4:
+                    rrs[i][4] = str(host)
+                else:
+                    rrs[i][4] = hex(host)[2:]
                 rrs[i][5] = net
             first = False
             node = self.z[zn]
@@ -235,29 +240,37 @@ class Zone(object):
                     ##l.debug('.', end=' ', flush=True)
                 ##l.debug('+', end=' ', flush=True)
 
-            nodes.append((prefix+host, rrs))        # host, [related rdatasets]
+            if host:
+                nodes.append((host, rrs))           # host, [related rdatasets]
+            else:                                   # in apex
+                nodes.append((0, rrs))              # origin, [related rdatasets]
 
         # sort by host number (decimal if IP4 or hex if IP6 [with prefix 0x])
-        sorted(nodes, key=operator.itemgetter(0))
+        ##sorted(nodes, key=operator.itemgetter(0))
+        nodes.sort(key=lambda x: x[0])
 
         # now sort out net related nodes and store it as row list per net in net.data
 
-        row = 0                                     # index in net.data
         for net_name, net in self.nets.items():
-            net.data = ['', '', '', '', '']
+            row = 0  # index in net.data
+            net.data = [['', '', '', '', '']]
             for node in nodes:
                 first = True
-                sort_host, rrs = node
+                (sort_host, rrs) = node
                 for rr in rrs:
                     if not (first or rr[5] == net_name):
                         break                       # skip loop if neither apex nor matching net
-                    net.data[row,0] = rr[4]         # host number
-                    net.data[row,1] = rr[0]         # origin name
-                    net.data[row,2] = rr[1]         # ttl
-                    net.data[row,3] = rr[2]         # rtype
-                    net.data[row,4] = rr[3]         # rdata
+                    l.debug('row={}, rr={}'.format(repr(row), repr(rr)))
+
+                    net.data[row][0] = rr[4]         # host number
+                    net.data[row][1] = rr[0]         # origin name
+                    net.data[row][2] = rr[1]         # ttl
+                    net.data[row][3] = rr[2]         # rtype
+                    net.data[row][4] = rr[3]         # rdata
 
                     net.data.append(['', '', '', '', ''])
+                    row += 1
+                first = False
 
             if zad.prefs.debug:
                 logZones()
@@ -349,19 +362,18 @@ class Zone(object):
             if self.zone_name.endswith('in-addr.arpa.'):
                 l.error('?IPv4 address {} in IPv6 zone {} - ignored'.format(address, self.zone_name))
                 l.runner.send_msg('?IPv4 address {} in IPv6 zone {} - ignored'.format(address, self.zone_name))
-                return ('', '')
+                return ('', 0)
             
             a = ipaddress.IPv6Address(address)
             for k, v in self.nets.items():              # { netname: netobject }
                 if a in v:
                     return (k,
-                            str(ipaddress.IPv6Address(int(a) & int(v.hostmask)))[2:])
+                            ipaddress.IPv6Address(int(a) & int(v.hostmask)))
             for k, v in ip6Nets.items():                # { netname: netobject }
                 if a in v:
-                    if not a in self.nets:
-                        self.nets[k] = v
+                    self.nets[k] = v
                     return (k,
-                            str(ipaddress.IPv6Address(int(a) & int(v.hostmask)))[2:])
+                            ipaddress.IPv6Address(int(a) & int(v.hostmask)))
             try:
                 n = Ip6ZadNet((int(a) & self.default_net_mask, int(zad.prefs.default_ip6_prefix)))
             except ValueError:
@@ -369,21 +381,21 @@ class Zone(object):
                                                                 address, self.zone_name, hex(self.default_net_mask)))
                 l.runner.send_msg('?ValueError: IPv6 address {} in IPv6 zone {}, with mask {}'.format(
                                                                 address, self.zone_name, hex(self.default_net_mask)))
-                return ('', '')
+                return ('', 0)
             self.nets[str(n)] = n
             ip6Nets[str(n)] = n
             return (str(n),
-                    str(ipaddress.IPv6Address(int(a) & int(n.hostmask)))[2:])
+                    int(a) & int(n.hostmask))
 
         elif '.' in address:                            # IPv4
             def trimmHost(addr, net):
                 m = re.match(r'^(0\.)+(.*)', str(ipaddress.IPv4Address(int(addr) & int(net.hostmask))), re.A)
-                return m
+                return int(m.group(2))
 
             if self.zone_name.endswith('ip6.arpa.'):
                 l.error('?IPv6 address {} in IPv4 zone {} - ignored'.format(address, self.zone_name))
                 l.runner.send_msg('?IPv6 address {} in IPv4 zone {} - ignored'.format(address, self.zone_name))
-                return ('', '')
+                return ('', 0)
                 
             a = ipaddress.IPv4Address(address)
             for k, v in self.nets.items():              # { netname: netobject }
@@ -392,11 +404,10 @@ class Zone(object):
                             trimmHost(a, v))
             for k, v in ip4Nets.items():                # { netname: netobject }
                 if a in v:
-                    if not a in self.nets:
-                        self.nets[k] = v
+                    self.nets[k] = v
                     return (k,
                             trimmHost(a, v))
-            n = ipaddress.IPv4Network((int(a) & self.default_net_mask, int(zad.prefs.default_ip4_prefix)))
+            n = ipaddress.Ip4ZadNet((int(a) & self.default_net_mask, int(zad.prefs.default_ip4_prefix)))
             self.nets[str(n)] = n
             ip4Nets[str(n)] = n
             return (str(n),
@@ -448,6 +459,7 @@ class DomainZone(Zone):
             l.error('?loadZone {} failed. Giving up.'.format(self.zone_name))
             runner.send_msg('?loadZone {} failed. Giving up.'.format(self.zone_name))
             self.d = [['', '', '', ''], ['', '', '', '']]
+            self.unreachable = True
             return
 
         err = ''
@@ -523,7 +535,8 @@ async def loadZones(runner: RunThread):
         for d in (domainZones, ip4Zones, ip6Zones):
             for k in d.keys():
                 z = d[k]
-                if len(z.d) < 2:
+                ## if len(z.d) < 2:
+                if not z.valid and not z.unreachable:
                     zone_list.append((z))
         if zone_list:
             return zone_list[0]
