@@ -19,6 +19,7 @@ subdomains = {}
 ip4Nets = {}
 ip6Nets = {}
 
+
 class ZoneModel(QtCore.QAbstractTableModel):
     def __init__(self, data=[[]], parent=None):
         super(ZoneModel, self).__init__(parent)
