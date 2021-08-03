@@ -38,15 +38,30 @@
          <item>
           <layout class="QVBoxLayout" name="verticalLayout_4">
            <item>
-            <widget class="QComboBox" name="comboBoxZone_1"/>
+            <widget class="QComboBox" name="comboBoxZone_1">
+             <property name="font">
+              <font>
+               <family>Bitstream Vera Sans</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+            </widget>
            </item>
            <item>
-            <widget class="QComboBox" name="comboBoxSub_1"/>
+            <widget class="QComboBox" name="comboBoxSub_1">
+             <property name="font">
+              <font>
+               <family>Bitstream Vera Sans</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+            </widget>
            </item>
            <item>
             <widget class="QTableView" name="tableView_1">
              <property name="font">
               <font>
+               <family>Bitstream Vera Sans Mono</family>
                <pointsize>11</pointsize>
               </font>
              </property>
@@ -67,15 +82,30 @@
          <item>
           <layout class="QVBoxLayout" name="verticalLayout_6">
            <item>
-            <widget class="QComboBox" name="comboBoxZone_2"/>
+            <widget class="QComboBox" name="comboBoxZone_2">
+             <property name="font">
+              <font>
+               <family>Bitstream Vera Sans</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+            </widget>
            </item>
            <item>
-            <widget class="QComboBox" name="comboBoxSub_2"/>
+            <widget class="QComboBox" name="comboBoxSub_2">
+             <property name="font">
+              <font>
+               <family>Bitstream Vera Sans</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+            </widget>
            </item>
            <item>
             <widget class="QTableView" name="tableView_2">
              <property name="font">
               <font>
+               <family>Bitstream Vera Sans Mono</family>
                <pointsize>11</pointsize>
               </font>
              </property>
@@ -96,15 +126,30 @@
          <item>
           <layout class="QVBoxLayout" name="verticalLayout_8">
            <item>
-            <widget class="QComboBox" name="comboBoxZone_3"/>
+            <widget class="QComboBox" name="comboBoxZone_3">
+             <property name="font">
+              <font>
+               <family>Bitstream Vera Sans</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+            </widget>
            </item>
            <item>
-            <widget class="QComboBox" name="comboBoxSub_3"/>
+            <widget class="QComboBox" name="comboBoxSub_3">
+             <property name="font">
+              <font>
+               <family>Bitstream Vera Sans</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+            </widget>
            </item>
            <item>
             <widget class="QTableView" name="tableView_3">
              <property name="font">
               <font>
+               <family>Bitstream Vera Sans Mono</family>
                <pointsize>11</pointsize>
               </font>
              </property>
@@ -131,18 +176,32 @@
           <layout class="QVBoxLayout" name="verticalLayout_2">
            <item>
             <widget class="QComboBox" name="comboBoxMainZone">
+             <property name="font">
+              <font>
+               <family>Bitstream Vera Sans</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
              <property name="currentText">
               <string/>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QComboBox" name="comboBoxMainSub"/>
+            <widget class="QComboBox" name="comboBoxMainSub">
+             <property name="font">
+              <font>
+               <family>Bitstream Vera Sans</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+            </widget>
            </item>
            <item>
             <widget class="QTableView" name="maintableView">
              <property name="font">
               <font>
+               <family>Bitstream Vera Sans Mono</family>
                <pointsize>11</pointsize>
               </font>
              </property>
@@ -222,7 +281,14 @@
             </widget>
            </item>
            <item row="1" column="1">
-            <widget class="QLineEdit" name="nameAddressEdit"/>
+            <widget class="QLineEdit" name="nameAddressEdit">
+             <property name="font">
+              <font>
+               <family>Bitstream Vera Sans</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+            </widget>
            </item>
            <item row="2" column="0">
             <widget class="QLabel" name="ttlLabel">
@@ -232,7 +298,14 @@
             </widget>
            </item>
            <item row="2" column="1">
-            <widget class="QLineEdit" name="ttlEdit"/>
+            <widget class="QLineEdit" name="ttlEdit">
+             <property name="font">
+              <font>
+               <family>Bitstream Vera Sans</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+            </widget>
            </item>
            <item row="3" column="0">
             <widget class="QLabel" name="typeLabel">
@@ -242,7 +315,14 @@
             </widget>
            </item>
            <item row="3" column="1">
-            <widget class="QLineEdit" name="typeEdit"/>
+            <widget class="QLineEdit" name="typeEdit">
+             <property name="font">
+              <font>
+               <family>Bitstream Vera Sans</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+            </widget>
            </item>
            <item row="4" column="0">
             <widget class="QLabel" name="rdataLabel">
@@ -255,6 +335,7 @@
             <widget class="QTextEdit" name="rdataEdit">
              <property name="font">
               <font>
+               <family>Bitstream Vera Sans Mono</family>
                <pointsize>11</pointsize>
               </font>
              </property>
@@ -268,7 +349,14 @@
             </widget>
            </item>
            <item row="0" column="1">
-            <widget class="QLineEdit" name="hostLineEdit"/>
+            <widget class="QLineEdit" name="hostLineEdit">
+             <property name="font">
+              <font>
+               <family>Bitstream Vera Sans</family>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+            </widget>
            </item>
           </layout>
          </item>
@@ -343,6 +431,11 @@
   <action name="actionZones">
    <property name="text">
     <string>Zones</string>
+   </property>
+  </action>
+  <action name="actionQuit">
+   <property name="text">
+    <string>Quit</string>
    </property>
   </action>
  </widget>
