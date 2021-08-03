@@ -14,13 +14,23 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_settingsTabWidget(object):
     def setupUi(self, settingsTabWidget):
         settingsTabWidget.setObjectName("settingsTabWidget")
-        settingsTabWidget.resize(389, 327)
+        settingsTabWidget.resize(389, 373)
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(settingsTabWidget)
+        self.verticalLayout_2.setContentsMargins(-1, 17, -1, -1)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.tabWidget = QtWidgets.QTabWidget(settingsTabWidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.tabWidget.sizePolicy().hasHeightForWidth())
+        self.tabWidget.setSizePolicy(sizePolicy)
+        self.tabWidget.setMinimumSize(QtCore.QSize(0, 0))
+        self.tabWidget.setBaseSize(QtCore.QSize(365, 349))
+        self.tabWidget.setAutoFillBackground(False)
         self.tabWidget.setLocale(QtCore.QLocale(QtCore.QLocale.English, QtCore.QLocale.Germany))
-        self.tabWidget.setTabShape(QtWidgets.QTabWidget.Triangular)
+        self.tabWidget.setTabShape(QtWidgets.QTabWidget.Rounded)
         self.tabWidget.setElideMode(QtCore.Qt.ElideNone)
+        self.tabWidget.setMovable(False)
         self.tabWidget.setObjectName("tabWidget")
         self.GeneralTab = QtWidgets.QWidget()
         self.GeneralTab.setObjectName("GeneralTab")
@@ -244,7 +254,7 @@ class Ui_settingsTabWidget(object):
         self.verticalLayout_2.addWidget(self.tabWidget)
 
         self.retranslateUi(settingsTabWidget)
-        self.tabWidget.setCurrentIndex(3)
+        self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(settingsTabWidget)
 
     def retranslateUi(self, settingsTabWidget):
