@@ -1,3 +1,5 @@
+import platform
+
 import ipaddress
 import logging
 import pprint
@@ -319,6 +321,9 @@ def setup():
 
     sd = ZaSettingsDialog()
 
+    if platform.system() == 'FreeBSD':
+        sd.tabWidget.setStyleSheet("QTabBar::tab:selected { color: white; background-color: blue; }")
+    
     sd.addSetListView(SetListsView(
         "ip4_nets",
         sd.iPv4ListWidget,
