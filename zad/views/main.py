@@ -1,3 +1,4 @@
+import platform
 import asyncio
 import logging
 from PyQt5 import QtCore, QtWidgets
@@ -98,12 +99,11 @@ class ZaMainWindow(QtWidgets.QMainWindow,zad.pyuic.mainwindow.Ui_mainWindow):
 
     def about(self):
         QtWidgets.QMessageBox.about(self, None,
-                "<p>zad - DNS zone adminsitration tool</p><p>Version {}</p>".format(zad.get_version()))
+                "<p>zad - DNS zone administration tool</p><p>Version {}</p>".format(zad.get_version()))
 
     def connectActions(self):
         self.actionAbout.triggered.connect(self.about)
         self.actionSettings.triggered.connect(zad.views.settings.showSettings)
-
 
 def setup():
     global mainWindow, statusBar
@@ -111,6 +111,9 @@ def setup():
     mainWindow = ZaMainWindow()
     mainWindow.connectActions()
     mainWindow.setWindowTitle(zad.common.windowHeading)
+    if platform.system() == 'FreeBSD':
+        mainWindow.setStyleSheet("QTableView, QTableView QWidget, QTextEdit, QLabel { font-size : 9pt } \
+                                  QComboBox, QLineEdit { font-size : 10pt }")
     statusBar = mainWindow.statusbar
     mainWindow.readSettings()
     mainWindow.show()
