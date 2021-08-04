@@ -230,10 +230,10 @@ class Zone(object):
                             srdata = str(rdata.exchange)
                         elif srdatatype == 'PTR':
                             a = dns.reversename.to_address(k)
-                            if zad.prefs.debug: print('{}  {}'.format(a, name))
+                            ##if zad.prefs.debug: print('{}  {}'.format(a, name))
                         elif srdatatype == 'SOA' and srdata.endswith('.arpa.'):
                             a = dns.reversename.to_address(self.zone_name)
-                            if zad.prefs.debug: print('{}  {}'.format(a, self.zone_name))
+                            ##if zad.prefs.debug: print('{}  {}'.format(a, self.zone_name))
                         await self.createZoneFromName(srdatatype, srdata)
                         i = i + 1
                         rrs.append(['', '', '', '', '', ''])
@@ -260,7 +260,7 @@ class Zone(object):
                 for rr in rrs:
                     if not (first or rr[5] == net_name):
                         break                       # skip loop if neither apex nor matching net
-                    l.debug('row={}, rr={}'.format(repr(row), repr(rr)))
+                    ##l.debug('row={}, rr={}'.format(repr(row), repr(rr)))
 
                     net.data[row][0] = rr[4]         # host number
                     net.data[row][1] = rr[0]         # origin name
@@ -493,10 +493,10 @@ class DomainZone(Zone):
                             srdata = str(rdata.exchange)
                         elif srdatatype == 'PTR':
                             a = dns.reversename.to_address(k)
-                            if zad.prefs.debug: print('{}  {}'.format(a, name))
+                            ##if zad.prefs.debug: print('{}  {}'.format(a, name))
                         elif srdatatype == 'SOA' and srdata.endswith('.arpa.'):
                             a = dns.reversename.to_address(self.zone_name)
-                            if zad.prefs.debug: print('{}  {}'.format(a, self.zone_name))
+                            ##if zad.prefs.debug: print('{}  {}'.format(a, self.zone_name))
                         await self.createZoneFromName(srdatatype, srdata)
                         row = row + 1
                         self.d.append(['', '', '', ''])
