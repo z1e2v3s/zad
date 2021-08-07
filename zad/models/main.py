@@ -21,14 +21,16 @@ ip6Nets = {}
 
 
 class ZoneModel(QtCore.QAbstractTableModel):
-    def __init__(self, data=[[]], parent=None):
+    def __init__(self, data=[[]], netZone=False, parent=None):
         super(ZoneModel, self).__init__(parent)
-        self.vrrs: [[str,str,str]] = data
+        self.vrrs = data
+        self.netZone = netZone
 
     def headerData(self, section: int, orientation: QtCore.Qt.Orientation, role: int):
         if role == QtCore.Qt.DisplayRole:
             if orientation == QtCore.Qt.Horizontal:
-                return ['OwnerName', 'Type', 'Rdata'][section]
+                f1 = 'Host' if self.netZone else 'OwnerName'
+                return [f1, 'Type', 'Rdata'][section]
             else:
                 return None
 
@@ -42,34 +44,61 @@ class ZoneModel(QtCore.QAbstractTableModel):
         if role == QtCore.Qt.DisplayRole:
             row = index.row()
             column = index.column()
-            if column > 0:
+            if self.netZone:
+                if column > 0:
+                    column += 2
+            else:
                 column += 1
             v = self.vrrs[row][column]
             if not v:
                 v = ''
             return str(v)
 
-
 class EditZoneModel(ZoneModel):
-    def __init__(self, data=[[]], parent=None):
+    def __init__(self, data=[[]], netZone=False, parent=None):
         super(EditZoneModel, self).__init__(parent)
-        self.vrrs: [[str,str,str,str]] = data
+        self.vrrs = data
+        self.netZone = netZone
 
     def headerData(self, section: int, orientation: QtCore.Qt.Orientation, role: int):
         if role == QtCore.Qt.DisplayRole:
             if orientation == QtCore.Qt.Horizontal:
-                return ['OwnerName', 'TTL', 'Type', 'Rdata'][section]
+                if self.netZone:
+                    return ['Host', 'OwnerName', 'TTL', 'Type', 'Rdata'][section]
+                else:
+                    return ['OwnerName', 'TTL', 'Type', 'Rdata'][section]
             else:
                 return None
 
     def columnCount(self, parent=None):
-        return 4
+        return 5 if self.netZone else 4
 
     def data(self, index: QtCore.QModelIndex, role: int):
         if role == QtCore.Qt.DisplayRole:
             row = index.row()
             column = index.column()
+            if not self.netZone:
+                column += 1
+
             v = self.vrrs[row][column]
             if not v:
                 v = ''
             return str(v)
+
+    """
+    # keep column width with header
+    def columnWidth(self) -> list(tuple):
+        l = []
+        if self netZone:
+            l.append(0,20)
+            l.append(1,100)
+            l.append(2,10)
+            l.append(3,10)
+            l.append(4,400)
+        else:
+            l.append(0,120)
+            l.append(1,10)
+            l.append(2,10)
+            l.append(3,400)
+        return l
+    """
