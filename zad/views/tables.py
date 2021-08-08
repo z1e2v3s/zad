@@ -68,6 +68,7 @@ class ZoneView(QtCore.QObject):
             self.zoneBox.setCurrentText(ct)
 
     def reload_table(self, zone_name):
+        model = None
         if zone_name:
             self.zone: zad.models.axfr.Zone = zad.models.axfr.Zone.zoneByName(zone_name)
         if self.zone.type in (zad.common.ZTIP4, zad.common.ZTIP6):                      # a net zone
@@ -97,7 +98,7 @@ class ZoneView(QtCore.QObject):
         if not self.zone or not net_name or self.zone.type not in (
                                                             zad.common.ZTIP4, zad.common.ZTIP6):
             return
-        if self.net_name in self.zone.nets:  ## FIXME: addNet changed asynchronously?
+        if net_name in self.zone.nets:  ## FIXME: addNet changed asynchronously?
             self.net_name = net_name
             model = zad.models.main.ZoneModel(self.zone.nets[self.net_name].data, True)
             self.tabView.setModel(model)
@@ -170,6 +171,7 @@ class ZoneEdit(ZoneView):
             i = model.createIndex(index.row(), 3)
             mw.typeEdit.setText(model.data(i, QtCore.Qt.DisplayRole))
             i = model.createIndex(index.row(), 4)
+            mw.rdataEdit.setText(model.data(i, QtCore.Qt.DisplayRole))
 
     def otherDoubleClicked(self, zone_name, row):
         pass
