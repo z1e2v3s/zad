@@ -63,23 +63,17 @@ class EditZoneModel(ZoneModel):
     def headerData(self, section: int, orientation: QtCore.Qt.Orientation, role: int):
         if role == QtCore.Qt.DisplayRole:
             if orientation == QtCore.Qt.Horizontal:
-                if self.netZone:
-                    return ['Host', 'OwnerName', 'TTL', 'Type', 'Rdata'][section]
-                else:
-                    return ['OwnerName', 'TTL', 'Type', 'Rdata'][section]
+                return ['Host', 'OwnerName', 'TTL', 'Type', 'Rdata'][section]
             else:
                 return None
 
     def columnCount(self, parent=None):
-        return 5 if self.netZone else 4
+        return 5
 
     def data(self, index: QtCore.QModelIndex, role: int):
         if role == QtCore.Qt.DisplayRole:
             row = index.row()
             column = index.column()
-            if not self.netZone:
-                column += 1
-
             v = self.vrrs[row][column]
             if not v:
                 v = ''
