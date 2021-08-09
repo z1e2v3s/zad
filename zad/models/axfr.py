@@ -212,7 +212,7 @@ class Zone(object):
             if not first:
                 addr = dns.reversename.to_address(dns.name.from_text(name))
                 (net, host) = self.addNet(addr)     # net_name, host as int
-                l.debug('host={}, name={}, net={}'.format(host, name, net))
+                l.debug('host={}, addr={}, net={}'.format(host, addr, net))
                 if self.type == zad.common.ZTIP4:
                     rrs[i][4] = str(host)           # display IPv4 host
                 else:
@@ -259,7 +259,7 @@ class Zone(object):
                 first = True
                 (sort_host, rrs) = node
                 for rr in rrs:
-                    if not (first or rr[5] == net_name):
+                    if not (first or rr[5] != net_name):
                         break                       # skip loop if neither apex nor matching net
                     ##l.debug('row={}, rr={}'.format(repr(row), repr(rr)))
 
@@ -365,16 +365,19 @@ class Zone(object):
                 l.runner.send_msg('?IPv6 address {} in IPv4 zone {} - ignored'.format(address, self.name))
                 return ('', 0)
             
+            # try known nets of current zone
             a = ipaddress.IPv6Address(address)
             for k, v in self.nets.items():              # { netname: netobject }
                 if a in v:
                     return (k,
                             int(ipaddress.IPv6Address(int(a) & int(v.hostmask))))
-            for k, v in ip6Nets.items():                # { netname: netobject }
+            # try all known nets, included those from settings
+            for k, v in ip6Nets.items():                # { netname: netobject } but netname may be none-canonical
                 if a in v:
-                    self.nets[k] = v
-                    return (k,
+                    self.nets[str(v)] = v               # none-canonical: 2a02:cd04:01:: instead of 2a02:cd04:1::
+                    return (str(v),
                             int(ipaddress.IPv6Address(int(a) & int(v.hostmask))))
+            # now create a new net from default prefix
             try:
                 n = Ip6ZadNet((int(a) & self.default_net_mask, int(zad.prefs.default_ip6_prefix)))
             except ValueError:
@@ -386,7 +389,7 @@ class Zone(object):
             self.nets[str(n)] = n
             ip6Nets[str(n)] = n
             return (str(n),
-                    int(a) & int(n.hostmask))
+                    int(ipaddress.IPv6Address(int(a) & int(n.hostmask))))
 
         elif '.' in address:
             def trimmHost(addr, net):

@@ -180,6 +180,7 @@ class ZoneEdit(ZoneView):
         pass
 
     def reload_table(self, zone_name):
+        model = None
         if zone_name:
             self.zone: zad.models.axfr.Zone = zad.models.axfr.Zone.zoneByName(zone_name)
         if self.zone.type in (zad.common.ZTIP4, zad.common.ZTIP6):                      # a net zone
@@ -197,7 +198,7 @@ class ZoneEdit(ZoneView):
         if not self.zone or not net_name or self.zone.type not in (
                                                             zad.common.ZTIP4, zad.common.ZTIP6):
             return
-        if self.net_name in self.zone.nets:  ## FIXME: addNet changed asynchronously?
+        if net_name in self.zone.nets:  ## FIXME: addNet changed asynchronously?
             self.net_name = net_name
             model = zad.models.main.EditZoneModel(self.zone.nets[self.net_name].data, True)
             self.tabView.setModel(model)
