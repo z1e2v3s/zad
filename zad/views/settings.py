@@ -128,7 +128,7 @@ l = logging.getLogger(__name__)
 def showSettings():
     global sd
     sd.show()
-    ##sd.raise()
+    sd.activateWindow()
 
 
 class SetListsView(QtCore.QObject):

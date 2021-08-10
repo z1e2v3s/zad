@@ -50,6 +50,8 @@ class ZoneModel(QtCore.QAbstractTableModel):
                     column += 2
             else:
                 column += 1
+                if column > 1:
+                    column += 1
             v = self.vrrs[row][column]
             if not v:
                 v = ''
