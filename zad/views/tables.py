@@ -97,6 +97,10 @@ class ZoneView(QtCore.QObject):
     def reload_net(self, net_name):
         if not self.zone or not net_name or self.zone.type not in (
                                                             zad.common.ZTIP4, zad.common.ZTIP6):
+            l.info('%% reload_net: premature return. net_name={}, zone={}, type={}'.format(
+                                            net_name,
+                                            self.zone.name if self.zone else '',
+                                            self.zone.type if self.zone else ''))
             return
         if net_name in self.zone.nets:  ## FIXME: addNet changed asynchronously?
             self.net_name = net_name
@@ -153,13 +157,13 @@ class ZoneEdit(ZoneView):
     def tableRowSelected_slot(self, index):
         model = self.tabView.model()
         if self.zone.type == zad.common.ZTDOM:
-            i = model.createIndex(index.row(), 0)
-            mw.nameAddressEdit.setText(model.data(i, QtCore.Qt.DisplayRole))
             i = model.createIndex(index.row(), 1)
-            mw.ttlEdit.setText(model.data(i, QtCore.Qt.DisplayRole))
+            mw.nameAddressEdit.setText(model.data(i, QtCore.Qt.DisplayRole))
             i = model.createIndex(index.row(), 2)
-            mw.typeEdit.setText(model.data(i, QtCore.Qt.DisplayRole))
+            mw.ttlEdit.setText(model.data(i, QtCore.Qt.DisplayRole))
             i = model.createIndex(index.row(), 3)
+            mw.typeEdit.setText(model.data(i, QtCore.Qt.DisplayRole))
+            i = model.createIndex(index.row(), 4)
             mw.rdataEdit.setText(model.data(i, QtCore.Qt.DisplayRole))
         else:                                                   # net zone, load host field
             i = model.createIndex(index.row(), 0)
@@ -172,6 +176,14 @@ class ZoneEdit(ZoneView):
             mw.typeEdit.setText(model.data(i, QtCore.Qt.DisplayRole))
             i = model.createIndex(index.row(), 4)
             mw.rdataEdit.setText(model.data(i, QtCore.Qt.DisplayRole))
+
+    def clearForm(self):
+        mw.hostLineEdit.clear()
+        mw.nameAddressEdit.clear()
+        mw.ttlEdit.clear()
+        mw.typeEdit.clear()
+        mw.rdataEdit.clear()
+
 
     def otherDoubleClicked(self, zone_name, row):
         pass
@@ -193,6 +205,7 @@ class ZoneEdit(ZoneView):
             self.clear_netbox()
         self.tabView.setModel(model)
         self.zoneBox.setCurrentText(zone_name)
+        self.clearForm()
 
     def reload_net(self, net_name):
         if not self.zone or not net_name or self.zone.type not in (
@@ -203,6 +216,7 @@ class ZoneEdit(ZoneView):
             model = zad.models.main.EditZoneModel(self.zone.nets[self.net_name].data, True)
             self.tabView.setModel(model)
             self.netBox.setCurrentText(net_name)
+            self.clearForm()
 
     def clear_netbox(self):
         self.netBoxNames = []

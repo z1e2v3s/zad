@@ -210,7 +210,13 @@ class Zone(object):
             rrs[i][0] = name
             host = 0
             if not first:
-                addr = dns.reversename.to_address(dns.name.from_text(name))
+                try:
+                    addr = dns.reversename.to_address(dns.name.from_text(name))
+                except dns.exception.SyntaxError:
+                    l.error('? DNS error: Syntax error while converting reverse name {} to address'.format(name))
+                    runner.send_msg('? DNS error: Syntax error while converting reverse name {} to address'.format(name))
+                    self.unreachable = True
+                    return
                 (net, host) = self.addNet(addr)     # net_name, host as int
                 l.debug('host={}, addr={}, net={}'.format(host, addr, net))
                 if self.type == zad.common.ZTIP4:
@@ -255,8 +261,8 @@ class Zone(object):
         for net_name, net in self.nets.items():
             row = 0  # index in net.data
             net.data = [['', '', '', '', '']]
+            first = True
             for node in nodes:
-                first = True
                 (sort_host, rrs) = node
                 for rr in rrs:
                     if first or rr[5] == net_name:
@@ -341,7 +347,11 @@ class Zone(object):
             ip4Zones[zoneName] = Ip4Zone(zoneName)
         elif dtype == 'AAAA' and zoneName not in ip6Zones:
             ip6Zones[zoneName] = Ip6Zone(zoneName)
-        elif dtype in ('NS', 'MX', 'CNAME', 'DNAME', 'PTR', 'SRV') and zoneName not in domainZones:
+        elif ( dtype in ('NS', 'MX', 'CNAME', 'DNAME', 'PTR', 'SRV')  and zoneName not in domainZones ):
+            if zoneName.endswith('.arpa.'):
+                l.error('?Unexpected reverse address (instead of name) {} in {} RR - ignored'.format(name, dtype))
+                return
+
             domainZones[zoneName] = DomainZone(zoneName)
         if zad.prefs.debug: print('createZoneFromName: {} done'.format(fqdn))
 
