@@ -259,18 +259,17 @@ class Zone(object):
                 first = True
                 (sort_host, rrs) = node
                 for rr in rrs:
-                    if not (first or rr[5] != net_name):
-                        break                       # skip loop if neither apex nor matching net
-                    ##l.debug('row={}, rr={}'.format(repr(row), repr(rr)))
+                    if first or rr[5] == net_name:
+                        ##l.debug('row={}, rr={}'.format(repr(row), repr(rr)))
 
-                    net.data[row][0] = rr[4]         # host number
-                    net.data[row][1] = rr[0]         # origin name
-                    net.data[row][2] = rr[1]         # ttl
-                    net.data[row][3] = rr[2]         # rtype
-                    net.data[row][4] = rr[3]         # rdata
+                        net.data[row][0] = rr[4]         # host number
+                        net.data[row][1] = rr[0]         # origin name
+                        net.data[row][2] = rr[1]         # ttl
+                        net.data[row][3] = rr[2]         # rtype
+                        net.data[row][4] = rr[3]         # rdata
 
-                    net.data.append(['', '', '', '', ''])
-                    row += 1
+                        net.data.append(['', '', '', '', ''])
+                        row += 1
                 first = False
 
             if zad.prefs.debug:
