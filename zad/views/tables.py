@@ -143,6 +143,31 @@ class ZoneEdit(ZoneView):
         self.init_tabView()
         self.connect_signals()
 
+
+    @QtCore.pyqtSlot(bool)
+    def onMinus(self, checked):
+        pass
+
+    @QtCore.pyqtSlot(bool)
+    def onPlus(self, checked):
+        pass
+
+    @QtCore.pyqtSlot(bool)
+    def onReset(self, checked):
+        pass
+
+    @QtCore.pyqtSlot(bool)
+    def onOK(self, checked):
+        pass
+
+    @QtCore.pyqtSlot(str)
+    def onEdited(self, text):
+        pass
+
+    @QtCore.pyqtSlot()
+    def rdataEdited(self):
+        pass
+
     @QtCore.pyqtSlot(str)
     def zoneBoxSelectionChanged(self, zone_name: str):
         if zone_name:
@@ -238,8 +263,14 @@ class ZoneEdit(ZoneView):
         self.netBox.currentTextChanged.connect(self.netBoxSelectionChanged)
         self.tabView.clicked.connect(self.tableRowSelected_slot)
 
+        mw.buttonM.clicked.connect(self.onMinus)
+        mw.buttonP.clicked.connect(self.onPlus)
+        mw.buttonReset.clicked.connect(self.onReset)
+        mw.buttonOK.clicked.connect(self.onOK)
 
-
+        for field in (mw.hostLineEdit, mw.nameAddressEdit, mw.ttlEdit, mw.typeEdit):
+            field.textEdited.connect(self.onEdited)
+        mw.rdataEdit.textChanged.connect(self.rdataEdited)
 
 def zone_loaded(zone_name):
     """
