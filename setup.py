@@ -18,7 +18,6 @@
 # limitations under the License.
 
 # Solution from Flavio Garcia <piraz@candango.org>
-import version
 from codecs import open
 from pip._internal.req import parse_requirements
 from pip._internal.network.session import PipSession
@@ -46,8 +45,8 @@ def resolve_requires(requirements_file):
 
 setup(
     name="zad",
-    version=version.get_version(),
-    license=version.__licence__,
+    version="0.1.0",
+    license="GNU General Public License Version 3",
     description=("A GUI tool for maintaining DNS zones via dynamic update"),
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -56,8 +55,8 @@ setup(
         "Bug Tracker": "https://codeberg.org/ajr/zad/issues",
         "Documentation": "https://codeberg.org/ajr/zad/issues"
     },
-    author=version.get_author(),
-    author_email=version.get_author_email(),
+    author="Axel Rau>",
+    author_email="axel.rau@chaos1,de",
     classifiers=[
         "Programming Language :: Python :: 3.9",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
