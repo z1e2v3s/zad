@@ -66,10 +66,13 @@ setup(
         "Environment :: X11 Applications :: Qt",
         "Topic :: Internet :: Name Service (DNS)",
         "Intended Audience :: System Administrators",
-        "Intended Audience :: Telecommunications Industry"
     ],
     packages=["zad"],
-    install_requires=resolve_requires("requirements/base.txt"),
+    install_requires=[
+        "dnspython==2.1.0",
+        "PyQt5==5.15.4",
+        "qasync==0.17.0"
+    ],
     entry_points={
         'console_scripts': [
             "zad = zad.app:run",
