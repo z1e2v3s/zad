@@ -57,7 +57,7 @@ class ZoneView(QtCore.QObject):
             edit_zone_view.otherDoubleClicked(self.zone.name, index.row())
 
     def addZone(self, zone_name):
-        ct = None
+        ct = cn = None
         if self.zoneBoxNames:
             ct = self.zoneBox.currentText()
         self.zoneBoxNames.append(zone_name)
@@ -66,6 +66,7 @@ class ZoneView(QtCore.QObject):
         self.zoneBox.addItems(self.zoneBoxNames)
         if ct:
             self.zoneBox.setCurrentText(ct)
+
 
     def reload_table(self, zone_name):
         model = None
@@ -139,8 +140,10 @@ class ZoneEdit(ZoneView):
         self.netBoxNames = []
         self.zone = None
         self.net_name = ''
+        self.tableIndex = None
 
         self.init_tabView()
+        self.clearButtons()
         self.connect_signals()
 
 
@@ -154,19 +157,28 @@ class ZoneEdit(ZoneView):
 
     @QtCore.pyqtSlot(bool)
     def onReset(self, checked):
-        pass
+        mw.buttonOK.setDisabled(True)
+        mw.buttonReset.setDisabled(True)
+        # restore fields
 
     @QtCore.pyqtSlot(bool)
     def onOK(self, checked):
-        pass
+        mw.buttonOK.setDisabled(True)
+        mw.buttonReset.setDisabled(True)
+        # issue change update
 
     @QtCore.pyqtSlot(str)
     def onEdited(self, text):
-        pass
+        self.edited()
 
     @QtCore.pyqtSlot()
     def rdataEdited(self):
-        pass
+        self.edited()
+
+    def edited(self):
+        mw.buttonOK.setDisabled(False)
+        mw.buttonOK.setDefault(True)
+        mw.buttonReset.setDisabled(False)
 
     @QtCore.pyqtSlot(str)
     def zoneBoxSelectionChanged(self, zone_name: str):
@@ -180,6 +192,17 @@ class ZoneEdit(ZoneView):
 
     @QtCore.pyqtSlot(QtCore.QModelIndex)
     def tableRowSelected_slot(self, index):
+        self.tableIndex = index
+        self.loadForm(index)
+
+    @QtCore.pyqtSlot(QtCore.QModelIndex, QtCore.QModelIndex, )
+    def onSelectionChanged(self, index, oldIndex):
+        ##print('QItemSelection={}'.format(sel.indexes))
+        self.tableIndex = index
+        self.loadForm(index)
+
+
+    def loadForm(self, index):
         model = self.tabView.model()
         if self.zone.type == zad.common.ZTDOM:
             i = model.createIndex(index.row(), 1)
@@ -202,6 +225,13 @@ class ZoneEdit(ZoneView):
             i = model.createIndex(index.row(), 4)
             mw.rdataEdit.setText(model.data(i, QtCore.Qt.DisplayRole))
 
+        mw.buttonM.setDisabled(False)
+        mw.buttonM.setDefault(True)
+        mw.buttonP.setDefault(False)
+        mw.buttonP.setDisabled(True)
+        mw.buttonOK.setDisabled(True)
+        mw.buttonOK.setDefault(False)
+
     def clearForm(self):
         mw.hostLineEdit.clear()
         mw.nameAddressEdit.clear()
@@ -209,6 +239,15 @@ class ZoneEdit(ZoneView):
         mw.typeEdit.clear()
         mw.rdataEdit.clear()
 
+    def clearButtons(self):
+        mw.buttonM.setDisabled(True)
+        mw.buttonM.setDefault(False)
+        mw.buttonP.setDefault(False)
+        mw.buttonP.setDisabled(True)
+        mw.buttonOK.setDisabled(True)
+        mw.buttonOK.setDefault(False)
+        mw.buttonReset.setDisabled(True)
+        mw.buttonReset.setDefault(False)
 
     def otherDoubleClicked(self, zone_name, row):
         pass
@@ -216,6 +255,23 @@ class ZoneEdit(ZoneView):
     def selfSelected(self, zone_name, row):
         pass
 
+
+    def addZone(self, zone_name):
+        ct = cn = None
+        if self.zoneBoxNames:
+            ct = self.zoneBox.currentText()
+            if self.zone.type != zad.common.ZTDOM:
+                cn = self.net_name
+        self.zoneBoxNames.append(zone_name)
+        self.zoneBoxNames.sort()
+        self.zoneBox.clear()
+        self.zoneBox.addItems(self.zoneBoxNames)
+        if ct:
+            self.zoneBox.setCurrentText(ct)
+        if self.tableIndex:
+            self.tabView.selectRow(self.tableIndex.row())
+            self.loadForm(self.tableIndex)
+    
     def reload_table(self, zone_name):
         model = None
         if zone_name:
@@ -231,6 +287,7 @@ class ZoneEdit(ZoneView):
         self.tabView.setModel(model)
         self.zoneBox.setCurrentText(zone_name)
         self.clearForm()
+        self.clearButtons()
 
     def reload_net(self, net_name):
         if not self.zone or not net_name or self.zone.type not in (
@@ -242,6 +299,7 @@ class ZoneEdit(ZoneView):
             self.tabView.setModel(model)
             self.netBox.setCurrentText(net_name)
             self.clearForm()
+            self.clearButtons()
 
     def clear_netbox(self):
         self.netBoxNames = []
@@ -262,6 +320,7 @@ class ZoneEdit(ZoneView):
         self.zoneBox.currentTextChanged.connect(self.zoneBoxSelectionChanged)
         self.netBox.currentTextChanged.connect(self.netBoxSelectionChanged)
         self.tabView.clicked.connect(self.tableRowSelected_slot)
+        ##self.tabView.currentChanged.connect(self.onSelectionChanged)
 
         mw.buttonM.clicked.connect(self.onMinus)
         mw.buttonP.clicked.connect(self.onPlus)
