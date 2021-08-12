@@ -56,7 +56,7 @@ setup(
         "Documentation": "https://codeberg.org/ajr/zad/issues"
     },
     author="Axel Rau>",
-    author_email="axel.rau@chaos1,de",
+    author_email="axel.rau@chaos1.de",
     classifiers=[
         "Programming Language :: Python :: 3.9",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
