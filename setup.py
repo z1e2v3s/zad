@@ -59,13 +59,15 @@ setup(
     author=version.get_author(),
     author_email=version.get_author_email(),
     classifiers=[
-        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.9",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
         "Operating System :: OS Independent",
-        "Development Status :: 2 - Pre-Alpha",
+        "Development Status :: 3 - Alpha",
         "Environment :: X11 Applications :: Qt",
-        "Topic :: Internet :: Name Service (DNS)"
+        "Topic :: Internet :: Name Service (DNS)",
+        "Intended Audience :: System Administrators",
+        "Intended Audience :: Telecommunications Industry"
     ],
     packages=["zad"],
     install_requires=resolve_requires("requirements/base.txt"),
