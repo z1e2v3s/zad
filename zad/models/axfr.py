@@ -420,7 +420,7 @@ class Zone(object):
                     self.nets[k] = v
                     return (k,
                             trimmHost(a, v))
-            n = ipaddress.Ip4ZadNet((int(a) & self.default_net_mask, int(zad.prefs.default_ip4_prefix)))
+            n = Ip4ZadNet((int(a) & self.default_net_mask, int(zad.prefs.default_ip4_prefix)))
             self.nets[str(n)] = n
             ip4Nets[str(n)] = n
             return (str(n),
