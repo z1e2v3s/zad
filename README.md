@@ -27,7 +27,8 @@ With python3.9 installed:
 pip install ajr.zad
 
 Or from repository:
-git clone https://c
+git clone https://codeberg.org/ajr/zad
+pip install -e zad
 ### Documentation
 
 See [zad.readthedocs.io](https://zad.readthedocs.io).
