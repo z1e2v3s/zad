@@ -18,29 +18,11 @@
 # limitations under the License.
 
 # Solution from Flavio Garcia <piraz@candango.org>
-from codecs import open
-from pip._internal.req import parse_requirements
-from pip._internal.network.session import PipSession
-from setuptools import setup
+from setuptools import setup, find_packages
 
 
 with open("README.md", "r") as fd:
     long_description = fd.read()
-
-
-# Solution from http://bit.ly/29Yl8VN
-def resolve_requires(requirements_file):
-    try:
-        requirements = parse_requirements("./%s" % requirements_file,
-                                          session=PipSession())
-        return [str(ir.req) for ir in requirements]
-    except AttributeError:
-        # for pip >= 20.1.x
-        # Need to run again as the first run was ruined by the exception
-        requirements = parse_requirements("./%s" % requirements_file,
-                                          session=PipSession())
-        # pr stands for parsed_requirement
-        return [str(pr.requirement) for pr in requirements]
 
 
 setup(
