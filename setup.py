@@ -45,7 +45,7 @@ def resolve_requires(requirements_file):
 
 setup(
     name="zad",
-    version="0.1.0",
+    version="0.2.0",
     license="GNU General Public License Version 3",
     description=("A GUI tool for maintaining DNS zones via dynamic update"),
     long_description=long_description,
@@ -67,12 +67,13 @@ setup(
         "Topic :: Internet :: Name Service (DNS)",
         "Intended Audience :: System Administrators",
     ],
-    packages=["zad"],
+    packages=find_packages(include=['zad', 'zad.*']),
     install_requires=[
         "dnspython==2.1.0",
         "PyQt5==5.15.4",
         "qasync==0.17.0"
     ],
+    python_requires='>=3.9',
     entry_points={
         'console_scripts': [
             "zad = zad.app:run",
