@@ -24,7 +24,7 @@ Hosts are displayed relative to their net.
 ## INSTALLATION
 
 With python3.9 installed:
-pip install ajr.zad
+pip install zad
 
 Or from repository:
 git clone https://codeberg.org/ajr/zad

@@ -278,7 +278,7 @@ class ZoneEdit(ZoneView):
             self.zone: zad.models.axfr.Zone = zad.models.axfr.Zone.zoneByName(zone_name)
         if self.zone.type in (zad.common.ZTIP4, zad.common.ZTIP6):                      # a net zone
             self.updateNets()
-            if not self.net_name:
+            if not self.net_name or self.net_name not in self.zone.nets.keys():
                 return
             model = zad.models.main.EditZoneModel(self.zone.nets[self.net_name].data, True)
         else:
