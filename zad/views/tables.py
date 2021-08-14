@@ -201,12 +201,11 @@ class ZoneEdit(ZoneView):
         self.tableIndex = index
         self.loadForm(index)
 
-
     def loadForm(self, index):
         model = self.tabView.model()
+        name = self.owner_name(model, index)
         if self.zone.type == zad.common.ZTDOM:
-            i = model.createIndex(index.row(), 1)
-            mw.nameAddressEdit.setText(model.data(i, QtCore.Qt.DisplayRole))
+            mw.nameAddressEdit.setText(name)
             i = model.createIndex(index.row(), 2)
             mw.ttlEdit.setText(model.data(i, QtCore.Qt.DisplayRole))
             i = model.createIndex(index.row(), 3)
@@ -216,8 +215,7 @@ class ZoneEdit(ZoneView):
         else:                                                   # net zone, load host field
             i = model.createIndex(index.row(), 0)
             mw.hostLineEdit.setText(model.data(i, QtCore.Qt.DisplayRole))
-            i = model.createIndex(index.row(), 1)
-            mw.nameAddressEdit.setText(model.data(i, QtCore.Qt.DisplayRole))
+            mw.nameAddressEdit.setText(name)
             i = model.createIndex(index.row(), 2)
             mw.ttlEdit.setText(model.data(i, QtCore.Qt.DisplayRole))
             i = model.createIndex(index.row(), 3)
@@ -231,6 +229,19 @@ class ZoneEdit(ZoneView):
         mw.buttonP.setDisabled(True)
         mw.buttonOK.setDisabled(True)
         mw.buttonOK.setDefault(False)
+
+    def owner_name(self, model, index):
+        """
+        return owner name of RR by index
+        """
+        row = index.row()
+        while row >= 0:
+            i = model.createIndex(row, 1)
+            name = model.data(i, QtCore.Qt.DisplayRole)
+            if name:
+                return name
+            row -= 1
+        return '?'
 
     def clearForm(self):
         mw.hostLineEdit.clear()
