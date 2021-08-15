@@ -1,6 +1,6 @@
 # zad
 
-zad - zone adminstration
+zad - DNS zone adminstration per GUI
 
 ## INTRODUCTION
 

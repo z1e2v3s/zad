@@ -152,7 +152,7 @@ class Prefs(QtCore.QObject):
         li = []
     
         size: int = self._settings.beginReadArray(name)
-        print('get:size ' + str(size))
+        ## print('get:size ' + str(size))
         for i in range(size):
             self._settings.setArrayIndex(i)
             li.append(self._settings.value('net'))
@@ -164,16 +164,16 @@ class Prefs(QtCore.QObject):
     
     def _updateNetList(self, name: str, theList: []):
 
-        print('update ' + repr(theList))
+        ## print('update ' + repr(theList))
         if self._settings.contains(name):
-            print('update: Removing all')
+            ## print('update: Removing all')
             self._settings.remove(name)
         theList.sort()
         self._settings.beginWriteArray(name)
         for i in range(len(theList)):
             self._settings.setArrayIndex(i)
             self._settings.setValue('net', theList[i])
-            print('update: Setting {}'.format(theList[i]))
+            ## print('update: Setting {}'.format(theList[i]))
         self._settings.endArray()
         setattr(self, '_' + name, theList)
 
