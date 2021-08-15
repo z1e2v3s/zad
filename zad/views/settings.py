@@ -3,7 +3,7 @@ import platform
 import ipaddress
 import logging
 import pprint
-
+import re
 from PyQt5 import QtWidgets, QtCore
 
 import zad.app
@@ -296,16 +296,10 @@ class SetListsView(QtCore.QObject):
             elif self.listPrefName == 'ip6_nets':
                 ipaddress.IPv6Network(netname)
                 return True
-            else:
-                try:
-                    ipaddress.IPv4Network(netname)
-                    return True
-                except:
-                    try:
-                        ipaddress.IPv6Network(netname)
-                        return True
-                    except:
-                        return False
+            else:                                   # a zone name
+                if re.search(r'[^a-z0-9.-]', netname):
+                    return False
+                return True
         except:
             return False
 
@@ -345,7 +339,7 @@ def setup():
     )
 
     sd.addSetListView(SetListsView(
-        "ignored_nets",
+        "ignored_zones",
         sd.ignoredListWidget,
         sd.ignoredLineEdit,
         sd.ignoredMinusButton,

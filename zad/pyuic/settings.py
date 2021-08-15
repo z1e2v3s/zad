@@ -254,7 +254,7 @@ class Ui_settingsTabWidget(object):
         self.verticalLayout_2.addWidget(self.tabWidget)
 
         self.retranslateUi(settingsTabWidget)
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(3)
         QtCore.QMetaObject.connectSlotsByName(settingsTabWidget)
 
     def retranslateUi(self, settingsTabWidget):
@@ -285,4 +285,4 @@ class Ui_settingsTabWidget(object):
         self.ignoredPlusButton.setText(_translate("settingsTabWidget", "+"))
         self.ignoredRevertButton.setText(_translate("settingsTabWidget", "Revert"))
         self.ignoredOkButton.setText(_translate("settingsTabWidget", "Ok"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("settingsTabWidget", "Ignored Nets"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("settingsTabWidget", "Ignored Zones"))

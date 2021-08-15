@@ -119,6 +119,7 @@ class Zone(object):
         self.z = None
         self.valid = False
         self.unreachable = False
+        self.ignored = self.name in zad.prefs.ignored_zones
 
         self.getNetsFromPrefs()
         
@@ -297,15 +298,15 @@ class Zone(object):
                 fqdn = name
             else:               # no, relative - make absolute
                 fqdn = name + '.' + self.name
-            if len(domainZones.keys()) > zad.common.MAX_ZONES:
-                return
+            ## if len(domainZones.keys()) > zad.common.MAX_ZONES:
+                ## return
         elif dtype == 'A':                                # address
-            if len(ip4Zones.keys()) > zad.common.MAX_ZONES:
-                return
+            ## if len(ip4Zones.keys()) > zad.common.MAX_ZONES:
+                ## return
             fqdn = dns.reversename.from_address(name)
         elif dtype == 'AAAA':                                # address
-            if len(ip6Zones.keys()) > zad.common.MAX_ZONES:
-                return
+            ## if len(ip6Zones.keys()) > zad.common.MAX_ZONES:
+                ## return
             fqdn = dns.reversename.from_address(name)
         else:                                                       # ignore others
             return
@@ -344,8 +345,12 @@ class Zone(object):
         ##l.debug('type={}, name={}, fqdn={}, zone={}'.format(dtype, name, fqdn, zoneName))
         l.debug('createZoneFromName: {}'.format(fqdn))
         if dtype == 'A' and zoneName not in ip4Zones:
+            if zoneName.count('.') < 3:                 # ignore everything below /9
+                return
             ip4Zones[zoneName] = Ip4Zone(zoneName)
         elif dtype == 'AAAA' and zoneName not in ip6Zones:
+            if zoneName.count(':') < 3:                 # ignore everything below /17
+                return
             ip6Zones[zoneName] = Ip6Zone(zoneName)
         elif ( dtype in ('NS', 'MX', 'CNAME', 'DNAME', 'PTR', 'SRV')  and zoneName not in domainZones ):
             if zoneName.endswith('.arpa.'):
@@ -550,7 +555,7 @@ async def loadZones(runner: RunThread):
             for k in d.keys():
                 z = d[k]
                 ## if len(z.d) < 2:
-                if not z.valid and not z.unreachable:
+                if not z.valid and not z.unreachable and not z.ignored:
                     zone_list.append((z))
         if zone_list:
             return zone_list[0]

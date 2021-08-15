@@ -31,7 +31,7 @@ class Prefs(QtCore.QObject):
         self._debug = False
         self._ip4_nets = []
         self._ip6_nets = []
-        self._ignored_nets = []
+        self._ignored_zones = []
 
         self._settings.beginGroup('gen')
         keys = self._settings.childKeys()
@@ -140,8 +140,8 @@ class Prefs(QtCore.QObject):
             return self._ip6_nets
 
     @property
-    def ignored_nets(self):
-            return self._ignored_nets
+    def ignored_zones(self):
+            return self._ignored_zones
             
 
     def sync(self):
@@ -189,7 +189,7 @@ class Prefs(QtCore.QObject):
         self._log_file = self._settings.value("gen/log_file")
         self._debug = self._settings.value("gen/debug").lower() in ('true', 'yes', '1', 't', 'y')
 
-        for name in ('ip4_nets', 'ip6_nets', 'ignored_nets'):
+        for name in ('ip4_nets', 'ip6_nets', 'ignored_zones'):
             lst = self.get_net_list(name)
             setattr(self, '_' + name, lst)
 

@@ -47,7 +47,7 @@
       <enum>QTabWidget::Rounded</enum>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>3</number>
      </property>
      <property name="elideMode">
       <enum>Qt::ElideNone</enum>
@@ -456,7 +456,7 @@
      </widget>
      <widget class="QWidget" name="tab">
       <attribute name="title">
-       <string>Ignored Nets</string>
+       <string>Ignored Zones</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_15">
        <item>
