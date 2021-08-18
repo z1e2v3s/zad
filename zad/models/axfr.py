@@ -303,10 +303,16 @@ class Zone(object):
         elif dtype == 'A':                                # address
             ## if len(ip4Zones.keys()) > zad.common.MAX_ZONES:
                 ## return
+            if name.count('.') < 3:                 # ignore everything below /9
+                l.info('[Not creating reverse zone for {}, because below /9]'.format(name))
+                return
             fqdn = dns.reversename.from_address(name)
         elif dtype == 'AAAA':                                # address
             ## if len(ip6Zones.keys()) > zad.common.MAX_ZONES:
                 ## return
+            if name.count(':') < 3:                 # ignore everything below /17
+                l.info('[Not creating reverse zone for {}, because below /17]'.format(name))
+                return
             fqdn = dns.reversename.from_address(name)
         else:                                                       # ignore others
             return
@@ -345,12 +351,8 @@ class Zone(object):
         ##l.debug('type={}, name={}, fqdn={}, zone={}'.format(dtype, name, fqdn, zoneName))
         l.debug('createZoneFromName: {}'.format(fqdn))
         if dtype == 'A' and zoneName not in ip4Zones:
-            if zoneName.count('.') < 3:                 # ignore everything below /9
-                return
             ip4Zones[zoneName] = Ip4Zone(zoneName)
         elif dtype == 'AAAA' and zoneName not in ip6Zones:
-            if zoneName.count(':') < 3:                 # ignore everything below /17
-                return
             ip6Zones[zoneName] = Ip6Zone(zoneName)
         elif ( dtype in ('NS', 'MX', 'CNAME', 'DNAME', 'PTR', 'SRV')  and zoneName not in domainZones ):
             if zoneName.endswith('.arpa.'):
