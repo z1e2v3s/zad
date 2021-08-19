@@ -96,9 +96,12 @@ class Zone(object):
         else:
             return domainZones[zone_name]
     
-    
+    def requestReload(zone_name):
+        z = Zone.zoneByName(zone_name)
+        z.valid = False
+
     def __init__(self, zone_name):
-        global domainZones,ip4Zones,ip6Zones
+        global domainZones, ip4Zones, ip6Zones
 
         error = self.init_by_subclass   # bail out if not created as subclass
             
@@ -551,6 +554,7 @@ async def loadZones(runner: RunThread):
     """
     Check for zones which not have been loaded and load them
     """
+    first_run_done = False
     def find_next_zone():
         zone_list = []
         for d in (domainZones, ip4Zones, ip6Zones):
@@ -568,12 +572,13 @@ async def loadZones(runner: RunThread):
         z = find_next_zone()
         if z:
             await z.loadZone(runner)
-            await asyncio.sleep(5)
+            ## await asyncio.sleep(5)
         else:
-            logZones()
-            runner.send_msg('All zones loaded.')
-            time.sleep(5)
-            break
+            if not first_run_done:
+                logZones()
+                runner.send_msg('All zones loaded.')
+                first_run_done = True
+            time.sleep(2)
 
 def logZones():
     l.info('[Known Zones:]')

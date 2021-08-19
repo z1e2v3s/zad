@@ -5,6 +5,7 @@ from PyQt5 import QtCore, QtWidgets
 import zad.pyuic.mainwindow
 import zad.models.axfr
 import zad.models.main
+import zad.models.nsupdate
 import zad.models.settings
 import zad.views.settings
 import zad.views.tables
@@ -105,6 +106,9 @@ class ZaMainWindow(QtWidgets.QMainWindow,zad.pyuic.mainwindow.Ui_mainWindow):
         self.actionAbout.triggered.connect(self.about)
         self.actionSettings.triggered.connect(zad.views.settings.showSettings)
 
+    def connectSignals(self):
+        zad.models.nsupdate.ddnsUpdate.nsupdate_message.connect(self.receive_status_bar_message)
+
 def setup():
     global mainWindow, statusBar
 
@@ -117,6 +121,10 @@ def setup():
     statusBar = mainWindow.statusbar
     mainWindow.readSettings()
     mainWindow.show()
+
+    zad.models.nsupdate.setup()
+    mainWindow.connectSignals()
+
     l.debug('After mw.show')
     return
 

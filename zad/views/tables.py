@@ -4,11 +4,13 @@ from PyQt5 import QtCore, QtWidgets
 import zad.common
 import zad.models.axfr
 import zad.models.main
+import zad.models.nsupdate
+
 import zad.views.main
 
 l = logging.getLogger(__name__)
 
-mw = None
+mw: 'zad.views.main.ZaMainWindow' = None
 
 edit_zone_view = None
 zone_view_1 = None
@@ -16,9 +18,9 @@ zone_view_2 = None
 zone_view_3 = None
 
 
-def setup(mainWindow):
+def setup(m_window):
     global mw
-    mw = mainWindow
+    mw = m_window
 
 
 class ZoneView(QtCore.QObject):
@@ -35,7 +37,7 @@ class ZoneView(QtCore.QObject):
         self.tabView = tabView
         self.zoneBoxNames = []
         self.netBoxNames = []
-        self.zone = None
+        self.zone: zad.models.axfr.Zone = None
         self.net_name = ''              # preserved net name
 
         self.init_tabView()
@@ -138,12 +140,13 @@ class ZoneEdit(ZoneView):
         self.tabView = tabView
         self.zoneBoxNames = []
         self.netBoxNames = []
-        self.zone = None
+        self.zone: zad.models.axfr.Zone = None
         self.net_name = ''
         self.tableIndex = None
 
         self.init_tabView()
         self.clearButtons()
+
         self.connect_signals()
 
 
@@ -153,7 +156,15 @@ class ZoneEdit(ZoneView):
 
     @QtCore.pyqtSlot(bool)
     def onPlus(self, checked):
-        pass
+        if zad.models.nsupdate.ddnsUpdate.create(
+            self.zone.name,
+            mw.nameAddressEdit.text(),
+            mw.ttlEdit.text(),
+            mw.typeEdit.text(),
+            mw.rdataEdit.toPlainText(),
+        ):
+            zad.models.axfr.Zone.requestReload(self.zone.name)
+
 
     @QtCore.pyqtSlot(bool)
     def onReset(self, checked):
@@ -179,6 +190,9 @@ class ZoneEdit(ZoneView):
         mw.buttonOK.setDisabled(False)
         mw.buttonOK.setDefault(True)
         mw.buttonReset.setDisabled(False)
+        mw.buttonP.setDefault(False)
+        mw.buttonP.setDisabled(False)
+        mw.buttonM.setDisabled(True)
 
     @QtCore.pyqtSlot(str)
     def zoneBoxSelectionChanged(self, zone_name: str):
@@ -340,6 +354,7 @@ class ZoneEdit(ZoneView):
 
         for field in (mw.hostLineEdit, mw.nameAddressEdit, mw.ttlEdit, mw.typeEdit):
             field.textEdited.connect(self.onEdited)
+        mw.rdataEdit.acceptRichText = False
         mw.rdataEdit.textChanged.connect(self.rdataEdited)
 
 def zone_loaded(zone_name):
