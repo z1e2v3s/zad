@@ -152,10 +152,20 @@ class ZoneEdit(ZoneView):
 
     @QtCore.pyqtSlot(bool)
     def onMinus(self, checked):
-        pass
+        self.blockSignalsOfForm(True)
+        if zad.models.nsupdate.ddnsUpdate.delete(
+            self.zone.name,
+            mw.nameAddressEdit.text(),
+            mw.typeEdit.text(),
+            mw.rdataEdit.toPlainText(),
+        ):
+            zad.models.axfr.Zone.requestReload(self.zone.name)
+        self.blockSignalsOfForm(False)
+        self.clearForm()
 
     @QtCore.pyqtSlot(bool)
     def onPlus(self, checked):
+        self.blockSignalsOfForm(True)
         if zad.models.nsupdate.ddnsUpdate.create(
             self.zone.name,
             mw.nameAddressEdit.text(),
@@ -164,7 +174,7 @@ class ZoneEdit(ZoneView):
             mw.rdataEdit.toPlainText(),
         ):
             zad.models.axfr.Zone.requestReload(self.zone.name)
-
+        self.blockSignalsOfForm(False)
 
     @QtCore.pyqtSlot(bool)
     def onReset(self, checked):
@@ -243,6 +253,7 @@ class ZoneEdit(ZoneView):
         mw.buttonP.setDisabled(True)
         mw.buttonOK.setDisabled(True)
         mw.buttonOK.setDefault(False)
+        self.blockSignalsOfForm(False)
 
     def owner_name(self, model, index):
         """
@@ -263,6 +274,13 @@ class ZoneEdit(ZoneView):
         mw.ttlEdit.clear()
         mw.typeEdit.clear()
         mw.rdataEdit.clear()
+
+    def blockSignalsOfForm(self, state: bool):
+        mw.hostLineEdit.blockSignals(state)
+        mw.nameAddressEdit.blockSignals(state)
+        mw.ttlEdit.blockSignals(state)
+        mw.typeEdit.blockSignals(state)
+        mw.rdataEdit.blockSignals(state)
 
     def clearButtons(self):
         mw.buttonM.setDisabled(True)
@@ -356,6 +374,7 @@ class ZoneEdit(ZoneView):
             field.textEdited.connect(self.onEdited)
         mw.rdataEdit.acceptRichText = False
         mw.rdataEdit.textChanged.connect(self.rdataEdited)
+        self.blockSignalsOfForm(True)
 
 def zone_loaded(zone_name):
     """
