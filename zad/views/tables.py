@@ -143,6 +143,12 @@ class ZoneEdit(ZoneView):
         self.zone: zad.models.axfr.Zone = None
         self.net_name = ''
         self.tableIndex = None
+        
+        self.formHost = ''
+        self.formName = ''
+        self.formttl = ''
+        self.forType = ''
+        self.formRdata = ''
 
         self.init_tabView()
         self.clearButtons()
@@ -178,14 +184,11 @@ class ZoneEdit(ZoneView):
 
     @QtCore.pyqtSlot(bool)
     def onReset(self, checked):
-        mw.buttonOK.setDisabled(True)
-        mw.buttonReset.setDisabled(True)
-        # restore fields
+        self.reloadForm()
 
     @QtCore.pyqtSlot(bool)
     def onOK(self, checked):
-        mw.buttonOK.setDisabled(True)
-        mw.buttonReset.setDisabled(True)
+        self.clearButtons()
         # issue change update
 
     @QtCore.pyqtSlot(str)
@@ -226,33 +229,34 @@ class ZoneEdit(ZoneView):
         self.loadForm(index)
 
     def loadForm(self, index):
-        model = self.tabView.model()
-        name = self.owner_name(model, index)
-        if self.zone.type == zad.common.ZTDOM:
-            mw.nameAddressEdit.setText(name)
-            i = model.createIndex(index.row(), 2)
-            mw.ttlEdit.setText(model.data(i, QtCore.Qt.DisplayRole))
-            i = model.createIndex(index.row(), 3)
-            mw.typeEdit.setText(model.data(i, QtCore.Qt.DisplayRole))
-            i = model.createIndex(index.row(), 4)
-            mw.rdataEdit.setText(model.data(i, QtCore.Qt.DisplayRole))
-        else:                                                   # net zone, load host field
-            i = model.createIndex(index.row(), 0)
-            mw.hostLineEdit.setText(model.data(i, QtCore.Qt.DisplayRole))
-            mw.nameAddressEdit.setText(name)
-            i = model.createIndex(index.row(), 2)
-            mw.ttlEdit.setText(model.data(i, QtCore.Qt.DisplayRole))
-            i = model.createIndex(index.row(), 3)
-            mw.typeEdit.setText(model.data(i, QtCore.Qt.DisplayRole))
-            i = model.createIndex(index.row(), 4)
-            mw.rdataEdit.setText(model.data(i, QtCore.Qt.DisplayRole))
+        self.loadBackup(index)
+        self.reloadForm()
 
+    def loadBackup(self, index):
+        model = self.tabView.model()
+        self.formName = self.owner_name(model, index)
+        if self.zone.type == zad.common.ZTDOM:
+            self.formHost = ''
+        else:
+            i = model.createIndex(index.row(), 0)
+            self.formHost = model.data(i, QtCore.Qt.DisplayRole)
+        i = model.createIndex(index.row(), 2)
+        self.formTtl = model.data(i, QtCore.Qt.DisplayRole)
+        i = model.createIndex(index.row(), 3)
+        self.formType = model.data(i, QtCore.Qt.DisplayRole)
+        i = model.createIndex(index.row(), 4)
+        self.formRdata = model.data(i, QtCore.Qt.DisplayRole)
+
+    def reloadForm(self):
+        mw.hostLineEdit.setText(self.formHost)
+        mw.nameAddressEdit.setText(self.formName)
+        mw.ttlEdit.setText(self.formTtl)
+        mw.typeEdit.setText(self.formType)
+        mw.rdataEdit.setText(self.formRdata)
+
+        self.clearButtons()
         mw.buttonM.setDisabled(False)
         mw.buttonM.setDefault(True)
-        mw.buttonP.setDefault(False)
-        mw.buttonP.setDisabled(True)
-        mw.buttonOK.setDisabled(True)
-        mw.buttonOK.setDefault(False)
         self.blockSignalsOfForm(False)
 
     def owner_name(self, model, index):
@@ -285,8 +289,8 @@ class ZoneEdit(ZoneView):
     def clearButtons(self):
         mw.buttonM.setDisabled(True)
         mw.buttonM.setDefault(False)
-        mw.buttonP.setDefault(False)
         mw.buttonP.setDisabled(True)
+        mw.buttonP.setDefault(False)
         mw.buttonOK.setDisabled(True)
         mw.buttonOK.setDefault(False)
         mw.buttonReset.setDisabled(True)
