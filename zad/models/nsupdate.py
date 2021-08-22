@@ -1,3 +1,4 @@
+import ipaddress
 import logging
 import re
 
@@ -19,16 +20,9 @@ class DdnsUpdate(QtCore.QObject):
     def __init__(self, parent=None):
         super(DdnsUpdate, self).__init__(parent)
 
-        self.master = self._resolve(zad.prefs.master_server)
+        self.master = zad.prefs.master_server
         self.keyring = self._get_ddns_keyring()
         return
-
-    def _resolve(self, fqdn) -> str:
-        """
-        return ip from fqdn
-        """
-        answers = dns.resolver.resolve(fqdn)
-        return answers[0].address
 
     def _get_ddns_keyring(self) -> dns.tsigkeyring:
         """

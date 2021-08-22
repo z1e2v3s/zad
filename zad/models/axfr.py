@@ -158,7 +158,7 @@ class Zone(object):
         
         self.z = dns.zone.Zone(self.name, relativize=False)
         runner.send_msg('Loading {} ...'.format(self.name))
-        ns = zad.prefs.ns_for_axfr
+        ns = zad.prefs.ns_for_axfr if zad.prefs.ns_for_axfr else zad.prefs.master_server
         ok = False
 
         try:
@@ -457,9 +457,10 @@ class DomainZone(Zone):
 
     async def loadZone(self, runner: RunThread):
         row = 0
+        self.d = [['', '', '', '', '']]
         self.z = dns.zone.Zone(self.name, relativize=False)
         runner.send_msg('Loading {} ...'.format(self.name))
-        ns = zad.prefs.ns_for_axfr
+        ns = zad.prefs.ns_for_axfr if zad.prefs.ns_for_axfr else zad.prefs.master_server
         ok = False
 
         try:
@@ -482,7 +483,6 @@ class DomainZone(Zone):
         if not ok:
             l.error('?loadZone {} failed. Giving up.'.format(self.name))
             runner.send_msg('?loadZone {} failed. Giving up.'.format(self.name))
-            self.d = [['', '', '', '', ''], ['', '', '', '', '']]
             self.unreachable = True
             return
 
@@ -571,8 +571,9 @@ async def loadZones(runner: RunThread):
     while True:
         z = find_next_zone()
         if z:
+            ## if first_run_done:              # zone has been modified by zad
+            ##     await asyncio.sleep(10)      # allow for notify/axfr delay
             await z.loadZone(runner)
-            ## await asyncio.sleep(5)
         else:
             if not first_run_done:
                 logZones()
