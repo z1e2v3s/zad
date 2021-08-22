@@ -142,7 +142,7 @@ class ZoneEdit(ZoneView):
         self.netBoxNames = []
         self.zone: zad.models.axfr.Zone = None
         self.net_name = ''
-        self.tableIndex = None
+        self.tableIndex: QtCore.QModelIndex = None
         
         self.formHost = ''
         self.formName = ''
@@ -159,7 +159,7 @@ class ZoneEdit(ZoneView):
     @QtCore.pyqtSlot(bool)
     def onMinus(self, checked):
         self.blockSignalsOfForm(True)
-        self.tableIndex = None
+        ##self.tableIndex = None
         if zad.models.nsupdate.ddnsUpdate.delete(
             self.zone.name,
             mw.nameAddressEdit.text(),
@@ -191,8 +191,23 @@ class ZoneEdit(ZoneView):
 
     @QtCore.pyqtSlot(bool)
     def onOK(self, checked):
+        self.blockSignalsOfForm(True)
+        ##self.tableIndex = None
         self.clearButtons()
-        # issue change update
+        zad.models.nsupdate.ddnsUpdate.delete(
+            self.zone.name,
+            self.formName,
+            self.formType,
+            self.formRdata
+        )
+        zad.models.nsupdate.ddnsUpdate.create(
+            self.zone.name,
+            mw.nameAddressEdit.text(),
+            mw.ttlEdit.text(),
+            mw.typeEdit.text(),
+            mw.rdataEdit.toPlainText(),
+        )
+        zad.models.axfr.Zone.requestReload(self.zone.name)
 
     @QtCore.pyqtSlot(str)
     def onEdited(self, text):
@@ -318,7 +333,7 @@ class ZoneEdit(ZoneView):
         self.zoneBox.addItems(self.zoneBoxNames)
         if ct:
             self.zoneBox.setCurrentText(ct)
-        if self.tableIndex:
+        if self.tableIndex and self.tableIndex.isValid:
             self.tabView.selectRow(self.tableIndex.row())
             self.loadForm(self.tableIndex)
     
