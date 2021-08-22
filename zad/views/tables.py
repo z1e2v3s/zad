@@ -159,6 +159,7 @@ class ZoneEdit(ZoneView):
     @QtCore.pyqtSlot(bool)
     def onMinus(self, checked):
         self.blockSignalsOfForm(True)
+        self.tableIndex = None
         if zad.models.nsupdate.ddnsUpdate.delete(
             self.zone.name,
             mw.nameAddressEdit.text(),
@@ -167,6 +168,7 @@ class ZoneEdit(ZoneView):
         ):
             zad.models.axfr.Zone.requestReload(self.zone.name)
         self.blockSignalsOfForm(False)
+        self.clearButtons()
         self.clearForm()
 
     @QtCore.pyqtSlot(bool)
@@ -181,6 +183,7 @@ class ZoneEdit(ZoneView):
         ):
             zad.models.axfr.Zone.requestReload(self.zone.name)
         self.blockSignalsOfForm(False)
+        self.clearButtons()
 
     @QtCore.pyqtSlot(bool)
     def onReset(self, checked):
