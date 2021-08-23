@@ -513,15 +513,21 @@ class DomainZone(Zone):
                         self.d[row][3] = srdatatype
                         srdata = str(rdata)
                         self.d[row][4] = srdata
-                        if srdatatype == 'MX':
-                            srdata = str(rdata.exchange)
-                        elif srdatatype == 'PTR':
-                            a = dns.reversename.to_address(k)
-                            ##if zad.prefs.debug: print('{}  {}'.format(a, name))
-                        elif srdatatype == 'SOA' and srdata.endswith('.arpa.'):
-                            a = dns.reversename.to_address(self.name)
-                            ##if zad.prefs.debug: print('{}  {}'.format(a, self.name))
-                        await self.createZoneFromName(srdatatype, srdata)
+                        try:
+                            if srdatatype == 'MX':
+                                srdata = str(rdata.exchange)
+                            elif srdatatype == 'PTR':
+                                a = dns.reversename.to_address(k)
+                                ##if zad.prefs.debug: print('{}  {}'.format(a, name))
+                            elif srdatatype == 'SOA' and srdata.endswith('.arpa.'):
+                                a = dns.reversename.to_address(self.name)
+                                ##if zad.prefs.debug: print('{}  {}'.format(a, self.name))
+                        except dns.exception.SyntaxError:
+                            l.error('%Malformed rdata: {} {} {}'.format(name, srdatatype, srdata))
+                            runner.send_msg('%Malformed rdata: {} {} {}'.format(name, srdatatype, srdata))
+
+                        else:
+                            await self.createZoneFromName(srdatatype, srdata)
                         row = row + 1
                         self.d.append(['', '', '', '', ''])             # host(unused), name, ttl, type, rdata
                     ##l.debug('.', end=' ', flush=True)
