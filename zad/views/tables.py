@@ -1,4 +1,8 @@
-import logging
+import logging, sys
+
+import dns.rdata, dns.rdataclass, dns.rdataclass, dns.rdatatype
+import dns.name, dns.resolver
+
 from PyQt5 import QtCore, QtWidgets
 
 import zad.common
@@ -8,7 +12,7 @@ import zad.models.nsupdate
 
 import zad.views.main
 
-l = logging.getLogger(__name__)
+l = None
 
 mw: 'zad.views.main.ZaMainWindow' = None
 
@@ -128,6 +132,8 @@ class ZoneView(QtCore.QObject):
 
 class ZoneEdit(ZoneView):
 
+    zoneEdit_message = QtCore.pyqtSignal(str)           # lmessages for status bar
+
     def __init__(self,
                  zoneBox: QtWidgets.QComboBox,
                  netBox: QtWidgets.QComboBox,
@@ -173,6 +179,9 @@ class ZoneEdit(ZoneView):
 
     @QtCore.pyqtSlot(bool)
     def onPlus(self, checked):
+        if not self.formValid():
+            zad.app.application.beep()
+            return
         self.blockSignalsOfForm(True)
         if zad.models.nsupdate.ddnsUpdate.create(
             self.zone.name,
@@ -191,6 +200,9 @@ class ZoneEdit(ZoneView):
 
     @QtCore.pyqtSlot(bool)
     def onOK(self, checked):
+        if not self.formValid():
+            zad.app.application.beep()
+            return
         self.blockSignalsOfForm(True)
         ##self.tableIndex = None
         self.clearButtons()
@@ -224,6 +236,42 @@ class ZoneEdit(ZoneView):
         mw.buttonP.setDefault(False)
         mw.buttonP.setDisabled(False)
         mw.buttonM.setDisabled(True)
+
+    def formValid(self):
+        name = mw.nameAddressEdit.text()
+        try:
+            n = dns.name.from_text(name)
+            if not isinstance(n,  dns.name.Name):
+                l.error('Editor: ?Malformed name {}'.format(name))
+                self.zoneEdit_message.emit('?Malformed name {}'.format(name))
+                return False
+            z = str(dns.resolver.zone_for_name(name, tcp=True))
+            if z != self.zone.name:
+                l.error('?Editor: name not in current zone: {}'.format(name))
+                self.zoneEdit_message.emit('?name not in current zone: {}'.format(name))
+                return False
+            rds = dns.rdataset.Rdataset(
+                    dns.rdataclass.IN,
+                    dns.rdatatype.from_text(mw.typeEdit.text())
+                    )
+            if mw.ttlEdit.text():
+                rds.update_ttl(int(mw.ttlEdit.text()))
+            rd = dns.rdata.from_text(
+                            rds.rdclass,
+                            rds.rdtype,
+                            mw.rdataEdit.toPlainText())
+            rds.add(rd)
+        except BaseException:
+            m = '?Editor: Bad RR: {} {} {}, \n because {} - {}'.format(name,
+                                                                           mw.typeEdit.text(),
+                                                                           mw.rdataEdit.toPlainText(),
+                                                                           sys.exc_info()[0].__name__,
+                                                                           str(sys.exc_info()[1]))
+            l.error(m)
+            self.zoneEdit_message.emit(m)
+            return False
+        return True
+
 
     @QtCore.pyqtSlot(str)
     def zoneBoxSelectionChanged(self, zone_name: str):
@@ -402,12 +450,15 @@ def zone_loaded(zone_name):
     """
     A new zone has been created"
     """
-    global mw, edit_zone_view, zone_view_1, zone_view_2, zone_view_3
+    global mw, l, edit_zone_view, zone_view_1, zone_view_2, zone_view_3
 
     if not edit_zone_view:
         edit_zone_view = ZoneEdit(mw.comboBoxMainZone,
                                   mw.comboBoxMainSub,
                                   mw.maintableView)
+        edit_zone_view.zoneEdit_message.connect(mw.receive_status_bar_message)  ## FIXME
+        l = logging.getLogger(__name__)                                         ## FIXME
+
     if not zone_view_1:
         zone_view_1 = ZoneView(mw.comboBoxZone_1,
                                mw.comboBoxSub_1,
