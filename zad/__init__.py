@@ -22,7 +22,7 @@ import zad.models.settings
 
 
 __author__ = "Axel Rau <axel.rau@chaos1,de>"
-__version__ = (0, 2, 0)
+__version__ = (0, 3, 0)
 __licence__ = "GNU General Public License Version 3"
 
 
