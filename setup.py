@@ -21,13 +21,17 @@
 from setuptools import setup, find_packages
 
 
-with open("README.md", "r") as fd:
-    long_description = fd.read()
-
+longdesc = '''
+In times of DNSsec, edited zone files interfere with resigning activities of
+the nameserver. To avoid inconsistency, zones are maintained by dynamic update
+(RFC 2136).
+zad provides a GUI for dynamic updates and zone visualisation to make address
+and host name editing easy like zone file editing.
+'''
 
 setup(
     name="zad",
-    version="0.2.0",
+    version="0.3.0",
     license="GNU General Public License Version 3",
     description=("A GUI tool for maintaining DNS zones via dynamic update"),
     long_description=long_description,
@@ -35,7 +39,7 @@ setup(
     url="https://codeberg.org/ajr/zad",
     project_urls={
         "Bug Tracker": "https://codeberg.org/ajr/zad/issues",
-        "Documentation": "https://codeberg.org/ajr/zad/issues"
+        "Documentation": "https://zad.readthedocs.io"
     },
     author="Axel Rau>",
     author_email="axel.rau@chaos1.de",
