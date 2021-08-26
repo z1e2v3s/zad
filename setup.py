@@ -25,6 +25,7 @@ longdesc = '''
 In times of DNSsec, edited zone files interfere with resigning activities of
 the nameserver. To avoid inconsistency, zones are maintained by dynamic update
 (RFC 2136).
+
 zad provides a GUI for dynamic updates and zone visualisation to make address
 and host name editing easy like zone file editing.
 '''
@@ -34,7 +35,7 @@ setup(
     version="0.3.0",
     license="GNU General Public License Version 3",
     description=("A GUI tool for maintaining DNS zones via dynamic update"),
-    long_description=long_description,
+    long_description=longdesc,
     long_description_content_type="text/markdown",
     url="https://codeberg.org/ajr/zad",
     project_urls={
