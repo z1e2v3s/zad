@@ -367,11 +367,13 @@ class Zone(object):
 
     def getNetsFromPrefs(self):
         if not ip4Nets and zad.prefs.ip4_nets:
-            for net in zad.prefs.ip4_nets:
-                ip4Nets[net] = ipaddress.IPv4Network(net)
+            for net_name in zad.prefs.ip4_nets:
+                net = ipaddress.IPv4Network(net_name)
+                ip4Nets[str(net)] = net            # use normalized form 2a05:bec0:26:: instead of 2a05:bec0:0026::
         if not ip6Nets and zad.prefs.ip6_nets:
-            for net in zad.prefs.ip6_nets:
-                ip6Nets[net] = ipaddress.IPv6Network(net)
+            for net_name in zad.prefs.ip6_nets:
+                net = ipaddress.IPv6Network(net_name)
+                ip6Nets[str(net)] = net
 
     def addNet(self, address) -> (str, str):
         """
