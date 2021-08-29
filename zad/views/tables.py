@@ -364,7 +364,6 @@ class ZoneEdit(ZoneView):
             return ''
 
 
-
     @QtCore.pyqtSlot(str)
     def zoneBoxSelectionChanged(self, zone_name: str):
         if zone_name:
@@ -466,6 +465,8 @@ class ZoneEdit(ZoneView):
         ct = cn = None
         if self.zoneBoxNames:
             ct = self.zoneBox.currentText()
+        if zone_name in self.zoneBoxNames:
+            self.zoneBoxNames.remove(zone_name)
             if self.zone.type != zad.common.ZTDOM:
                 cn = self.net_name
         self.zoneBoxNames.append(zone_name)
@@ -474,6 +475,8 @@ class ZoneEdit(ZoneView):
         self.zoneBox.addItems(self.zoneBoxNames)
         if ct:
             self.zoneBox.setCurrentText(ct)
+        if cn:
+            self.netBox.setCurrentText(cn)
         if self.tableIndex and self.tableIndex.isValid:
             self.tabView.selectRow(self.tableIndex.row())
             self.loadForm(self.tableIndex)
