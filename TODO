@@ -1,2 +1,3 @@
+- Allow navigating by cursor keys in table views.
 - Needing Reload button in editor
 - Implement search button with line Edit for search string in the editor.

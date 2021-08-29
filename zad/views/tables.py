@@ -1,7 +1,9 @@
 import logging, sys
 
+import ipaddress
+
 import dns.rdata, dns.rdataclass, dns.rdataclass, dns.rdatatype
-import dns.name, dns.resolver
+import dns.name, dns.resolver, dns.reversename, dns.exception
 
 from PyQt5 import QtCore, QtWidgets
 
@@ -179,7 +181,7 @@ class ZoneEdit(ZoneView):
 
     @QtCore.pyqtSlot(bool)
     def onPlus(self, checked):
-        if not self.formValid():
+        if not self.updateHost() or not self.formValid() or not mw.ttlEdit.text():
             zad.app.application.beep()
             return
         self.blockSignalsOfForm(True)
@@ -200,7 +202,7 @@ class ZoneEdit(ZoneView):
 
     @QtCore.pyqtSlot(bool)
     def onOK(self, checked):
-        if not self.formValid():
+        if not self.updateHost() or not self.formValid() or not mw.ttlEdit.text():
             zad.app.application.beep()
             return
         self.blockSignalsOfForm(True)
@@ -272,6 +274,96 @@ class ZoneEdit(ZoneView):
             return False
         return True
 
+    def updateHost(self):
+        if self.zone.type == zad.common.ZTDOM:
+            return
+        af = mw.nameAddressEdit.text()
+        hf = mw.hostLineEdit.text()
+        if af == self.formName and hf == self.formHost:
+            return True
+        if hf != self.formHost:
+            if not hf:                          # changing host to empty field is not allowed
+                zad.app.application.beep()
+                return False
+            host = self.reverseAddrFromHost(hf)
+            if host:
+                mw.nameAddressEdit.setText(str(host))
+                return True
+            else:
+                return False
+        else:
+            if not af:                          # changing owner name to empty field is not allowed
+                zad.app.application.beep()
+                return False
+            raddr = self.HostFromReverseAddr(af)
+            if raddr:
+                mw.hostLineEdit.setText(str(raddr))
+                return True
+            else:
+                return False
+
+    def reverseAddrFromHost(self, host):
+        try:
+            if self.zone.type == zad.common.ZTIP6:
+                h = int(host, 16)
+                net: ipaddress.IPv6Network = zad.models.axfr.ip6Nets[self.net_name]
+                if h < 0 or h >= net.num_addresses:
+                    raise ValueError('IPv6 Hostnumber out of range')
+                else:
+                    net_int = int(net.network_address)
+                    addr_int = net_int + h
+                    addr = ipaddress.IPv6Address(addr_int)
+                    return addr.reverse_pointer + '.'
+            else:
+                h = int(host)
+                net: ipaddress.IPv4Network = zad.models.axfr.ip4Nets[self.net_name]
+                if h < 0 or h >= net.num_addresses:
+                    raise ValueError('IPv4 Hostnumber out of range')
+                else:
+                    net_int = int(net.network_address)
+                    addr_int = net_int + h
+                    addr = ipaddress.IPv4Address(addr_int)
+                    return addr.reverse_pointer + '.'
+        except (TypeError, ValueError):
+            m = '?Editor: Bad host number: "{}", \n because {} - {}'.format(host,
+                                                                           sys.exc_info()[0].__name__,
+                                                                           str(sys.exc_info()[1]))
+            l.error(m)
+            self.zoneEdit_message.emit(m)
+            zad.app.application.beep()
+            return ''
+            
+
+    def HostFromReverseAddr(self, reverse_addr):
+        try:
+            if self.zone.type == zad.common.ZTIP6:
+                net = zad.models.axfr.ip6Nets[self.net_name]
+                a = dns.reversename.to_address(dns.name.from_text(reverse_addr))
+                addr = ipaddress.IPv6Address(a)
+                if addr not in net:
+                    zad.app.application.beep()
+                    return ''
+                host = int(addr) & int(net.hostmask)
+                return hex(host)[2:]
+            else:
+                net = zad.models.axfr.ip4Nets[self.net_name]
+                a = dns.reversename.to_address(dns.name.from_text(reverse_addr))
+                addr = ipaddress.IPv4Address(a)
+                if addr not in net:
+                    zad.app.application.beep()
+                    return ''
+                host = int(addr) & int(net.hostmask)
+            return host
+        except dns.exception.DNSException:
+            m = '?Editor: Bad origin IP: "{}", \n because {} - {}'.format(reverse_addr,
+                                                                           sys.exc_info()[0].__name__,
+                                                                           str(sys.exc_info()[1]))
+            l.error(m)
+            self.zoneEdit_message.emit(m)
+            zad.app.application.beep()
+            return ''
+
+
 
     @QtCore.pyqtSlot(str)
     def zoneBoxSelectionChanged(self, zone_name: str):
@@ -300,14 +392,12 @@ class ZoneEdit(ZoneView):
 
     def loadBackup(self, index):
         model = self.tabView.model()
-        self.formName = self.owner_name(model, index)
+        (self.formName, self.formTtl) = self.owner_name_ttl(model, index)
         if self.zone.type == zad.common.ZTDOM:
             self.formHost = ''
         else:
             i = model.createIndex(index.row(), 0)
             self.formHost = model.data(i, QtCore.Qt.DisplayRole)
-        i = model.createIndex(index.row(), 2)
-        self.formTtl = model.data(i, QtCore.Qt.DisplayRole)
         i = model.createIndex(index.row(), 3)
         self.formType = model.data(i, QtCore.Qt.DisplayRole)
         i = model.createIndex(index.row(), 4)
@@ -325,7 +415,7 @@ class ZoneEdit(ZoneView):
         mw.buttonM.setDefault(True)
         self.blockSignalsOfForm(False)
 
-    def owner_name(self, model, index):
+    def owner_name_ttl(self, model, index) -> (str, str):
         """
         return owner name of RR by index
         """
@@ -333,10 +423,13 @@ class ZoneEdit(ZoneView):
         while row >= 0:
             i = model.createIndex(row, 1)
             name = model.data(i, QtCore.Qt.DisplayRole)
+            i = model.createIndex(row, 2)
+            ttl = model.data(i, QtCore.Qt.DisplayRole)
+
             if name:
-                return name
+                return (name, ttl)
             row -= 1
-        return '?'
+        return ('?','?')
 
     def clearForm(self):
         mw.hostLineEdit.clear()
