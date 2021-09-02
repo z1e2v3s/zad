@@ -3,7 +3,7 @@ import logging
 import re
 
 import dns.query, dns.resolver, dns.rdatatype
-import dns.exception, dns.rcode
+import dns.exception, dns.rcode, dns.message
 import dns.update, dns.tsigkeyring, dns.tsig
 
 from PyQt5 import QtCore
@@ -15,6 +15,7 @@ l = logging.getLogger(__name__)
 ddnsUpdate = None
 
 class DdnsUpdate(QtCore.QObject):
+    global l
     nsupdate_message = QtCore.pyqtSignal(str)           # lmessages for status bar
 
     def __init__(self, parent=None):
@@ -84,9 +85,10 @@ class DdnsUpdate(QtCore.QObject):
             return False
         update.delete(owner_name, datatype, rdata)
         response = dns.query.tcp(update, self.master)
-        if response.rcode() != dns.rcode.NOERROR:
-            error('DNS delete operation failed for zone {} / {} {} {}:\n{} ({})'.
-                  format(zone_name, owner_name, rtype, rdata, response.rcode.to_text(), response.rcode))
+        rc = response.rcode()
+        if rc != dns.rcode.NOERROR:
+            l.error('DNS delete operation failed for zone {} / {} {} {}:\n{} ({})'.
+                  format(zone_name, owner_name, rtype, rdata, dns.rcode.to_text(rc), rc))
             return False
         else:
             l.info('[{} {} {} removed from zone {}]'.format(owner_name,  rtype, rdata, zone_name))
@@ -100,10 +102,11 @@ class DdnsUpdate(QtCore.QObject):
             return False
         ##update.add(owner_name, datatype, rdata)
         update.add(owner_name, int(ttl), rtype, rdata)
-        response = dns.query.tcp(update, self.master)
-        if response.rcode() != dns.rcode.NOERROR:
-            error('DNS add operation failed for zone {} / {} {} {}:\n{} ({})'.
-                  format(zone_name, ttl, rtype, rdata, response.rcode.to_text(), response.rcode()))
+        response: dns.message.Message = dns.query.tcp(update, self.master)
+        rc: dns.rcode = response.rcode()
+        if rc != dns.rcode.NOERROR:
+            l.error('DNS add operation failed for zone {} / {} {} {}:\n{} ({})'.
+                  format(zone_name, ttl, rtype, rdata, dns.rcode.to_text(rc), rc))
             return False
         else:
             l.info('[{} {} {} {} added to zone {}]'.format(owner_name, ttl, rtype, rdata, zone_name))

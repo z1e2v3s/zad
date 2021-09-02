@@ -62,7 +62,7 @@ class ZoneView(QtCore.QObject):
     @QtCore.pyqtSlot(QtCore.QModelIndex)
     def tableRowDoubleClicked_slot(self, index):
         if index.isValid:
-            edit_zone_view.otherDoubleClicked(self.zone.name, index.row())
+            edit_zone_view.otherDoubleClicked(self, index)
 
     def addZone(self, zone_name):
         ct = cn = None
@@ -276,7 +276,7 @@ class ZoneEdit(ZoneView):
 
     def updateHost(self):
         if self.zone.type == zad.common.ZTDOM:
-            return
+            return True
         af = mw.nameAddressEdit.text()
         hf = mw.hostLineEdit.text()
         if af == self.formName and hf == self.formHost:
@@ -285,9 +285,10 @@ class ZoneEdit(ZoneView):
             if not hf:                          # changing host to empty field is not allowed
                 zad.app.application.beep()
                 return False
-            host = self.reverseAddrFromHost(hf)
-            if host:
-                mw.nameAddressEdit.setText(str(host))
+            addr = self.addrFromHost(hf, self.zone.type, self.net_name)
+            if addr:
+                reverse_addr = addr.reverse_pointer + '.'
+                mw.nameAddressEdit.setText(str(reverse_addr))
                 return True
             else:
                 return False
@@ -302,28 +303,31 @@ class ZoneEdit(ZoneView):
             else:
                 return False
 
-    def reverseAddrFromHost(self, host):
+    def addrFromHost(self, host, zone_type, net_name):
+        """
+        Return address as string from host
+        """
         try:
-            if self.zone.type == zad.common.ZTIP6:
+            if zone_type == zad.common.ZTIP6:
                 h = int(host, 16)
-                net: ipaddress.IPv6Network = zad.models.axfr.ip6Nets[self.net_name]
+                net: ipaddress.IPv6Network = zad.models.axfr.ip6Nets[net_name]
                 if h < 0 or h >= net.num_addresses:
                     raise ValueError('IPv6 Hostnumber out of range')
                 else:
                     net_int = int(net.network_address)
                     addr_int = net_int + h
                     addr = ipaddress.IPv6Address(addr_int)
-                    return addr.reverse_pointer + '.'
+                    return addr
             else:
                 h = int(host)
-                net: ipaddress.IPv4Network = zad.models.axfr.ip4Nets[self.net_name]
+                net: ipaddress.IPv4Network = zad.models.axfr.ip4Nets[net_name]
                 if h < 0 or h >= net.num_addresses:
                     raise ValueError('IPv4 Hostnumber out of range')
                 else:
                     net_int = int(net.network_address)
                     addr_int = net_int + h
                     addr = ipaddress.IPv4Address(addr_int)
-                    return addr.reverse_pointer + '.'
+                    return addr
         except (TypeError, ValueError):
             m = '?Editor: Bad host number: "{}", \n because {} - {}'.format(host,
                                                                            sys.exc_info()[0].__name__,
@@ -454,8 +458,31 @@ class ZoneEdit(ZoneView):
         mw.buttonReset.setDisabled(True)
         mw.buttonReset.setDefault(False)
 
-    def otherDoubleClicked(self, zone_name, row):
-        pass
+    def otherDoubleClicked(self, sender: ZoneView, index):
+        other_zone: zad.models.axfr.Zone = zad.models.axfr.Zone.zoneByName(sender.zone.name)
+        other_model = sender.tabView.model()
+        i = other_model.index(index.row(), 0)
+        other_host = other_model.data(i, QtCore.Qt.DisplayRole)
+
+        i = other_model.index(index.row(), 1)
+        other_type = other_model.data(i, QtCore.Qt.DisplayRole)
+
+        own_type = mw.typeEdit.text()
+        if own_type == 'A':
+            if other_zone.type != zad.common.ZTIP4 or other_type != 'PTR':
+                zad.app.application.beep()
+                return
+            other_addr = self.addrFromHost(other_host, other_zone.type, sender.net_name)
+            if other_addr:
+                mw.rdataEdit.setText(str(other_addr))
+        elif own_type == 'AAAA':
+            if other_zone.type != zad.common.ZTIP6 or other_type != 'PTR':
+                zad.app.application.beep()
+                return
+            other_addr = self.addrFromHost(other_host, other_zone.type, sender.net_name)
+            if other_addr:
+                mw.rdataEdit.setText(str(other_addr))
+
 
     def selfSelected(self, zone_name, row):
         pass
@@ -541,6 +568,7 @@ class ZoneEdit(ZoneView):
         mw.rdataEdit.acceptRichText = False
         mw.rdataEdit.textChanged.connect(self.rdataEdited)
         self.blockSignalsOfForm(True)
+
 
 def zone_loaded(zone_name):
     """
