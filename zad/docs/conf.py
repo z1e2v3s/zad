@@ -22,7 +22,7 @@ copyright = '2021, Axel Rau'
 author = 'Axel Rau'
 
 # The full version, including alpha/beta/rc tags
-release = '0.3.0'
+release = '1.0rc1'
 
 
 # -- General configuration ---------------------------------------------------

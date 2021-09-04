@@ -23,4 +23,13 @@ Changelog
 - In the settings, 'ignored nets' has been replaced by 'ignored zones',
   to also ignore domain zones.
 
+1.0rc1 (2021-09-05)
+-------------------
 
+- First release candidate
+- Demo zone and nameserver have been replaced, to speed up of initial zone loading.
+  To use the new settings, trash your settings file.
+- Implemented synchronisation of host column with reverse address column and vice versa
+  in editor form for PTR RRs.
+- RDATA of A and AAAA RRs can now be filled by double clicking a row in the IPv4 or IPv6
+  zone views

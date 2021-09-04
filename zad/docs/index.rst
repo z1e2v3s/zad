@@ -12,6 +12,7 @@ Welcome to zad's documentation!
 
    introduction
    installation
+   operation
    CHANGELOG
    README
 

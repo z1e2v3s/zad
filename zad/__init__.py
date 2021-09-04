@@ -21,13 +21,13 @@
 import zad.models.settings
 
 
-__author__ = "Axel Rau <axel.rau@chaos1,de>"
-__version__ = (0, 3, 0)
+__author__ = "Axel Rau <axel.rau+zad@chaos1,de>"
+__version__ = "1.0rc1"
 __licence__ = "GNU General Public License Version 3"
 
 
 def get_version():
-    return ".".join(map(str, __version__))
+    return __version__
 
 
 def get_author():

@@ -15,10 +15,11 @@ __________________
 
 Currently zad can:
 
-* starting with a configured domain zone, this and any referenced zones
+* starting with a configured domain zone, this and any referenced zones,
+  which are reachable,
   are loaded (via AXFR) and displayed via browsable tables.
 * delete, add or update resource records of these zones via dynamic update
-* check of semantic and syntax of entered resource record if OK clicked
+* check of semantic and syntax of entered resource record if 'OK' or '+' clicked
 * to give the user a feedback, the modified zone is re-read and displayed
 * the graphical user interface has been designed to allow point and click
 * this tries to avoid the requirement to re-enter any data already
@@ -36,18 +37,10 @@ Features currently worked on
 ____________________________
 
 * Check button to check current contents of form fields for correctness
-* Updating Host field from Name/Address field or vice versa on Check button.
-* On double clickeng, inserting values from upper three table browsers into
-  Rdata of form:
-
-
-  * From Domain zone take fqdn of double clicked OwnerName.
-  * From IPv4 or IPv6 zone convert host address to a absolute address and
-    take it as argument for form/RData
-
-
+  (Currently done after clicking of 'OK' or '+')
 * Searching resource sets by owner names
-
+* Allow navigating by cursor keys in table views. (Currently only selecting by mouse
+  works)
 
 Motivation
 __________
@@ -55,7 +48,7 @@ __________
 
 In times of DNSsec, editing zone files by hand (e.g. with bind9 inline-signing)
 often interferes with resigning activities of the nameserver.
-To avoid inconsistencies, zones should be maintained by dynamic update
+To avoid inconsistencies, zones can be maintained by dynamic update
 (RFC 2136).
 
 This project was started to help the administrator with transition from
