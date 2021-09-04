@@ -6,7 +6,7 @@ import pprint
 import re
 from PyQt5 import QtWidgets, QtCore
 
-import zad.app
+import zad.app, zad.common
 import zad.pyuic.settings
 import zad.models.main
 import zad.models.settings
@@ -17,10 +17,12 @@ class PrefLineEditView(QtCore.QObject):
 
     def __init__(self,
                  lineEdit: QtWidgets.QLineEdit,
-                 prefName: str):
+                 prefName: str,
+                 isIP: bool):
         super(PrefLineEditView, self).__init__()
         self.lineEdit: QtWidgets.QLineEdit = lineEdit
         self.prefName: str = prefName
+        self.isIP = isIP
         self.preservedText = ''
 
     def readPref(self):
@@ -34,6 +36,14 @@ class PrefLineEditView(QtCore.QObject):
     def revert(self):
         self.lineEdit.setText(self.preservedText)
 
+    def validateIP(self) -> int:
+        if self.isIP and self.lineEdit.text():
+            try:
+                a = ipaddress.ip_address(self.lineEdit.text())
+                return 1
+            except:
+                return -100
+        return 0
 
 class ZaSettingsDialog(QtWidgets.QDialog,zad.pyuic.settings.Ui_settingsTabWidget):
     def __init__(self):
@@ -61,13 +71,18 @@ class ZaSettingsDialog(QtWidgets.QDialog,zad.pyuic.settings.Ui_settingsTabWidget
 
     @QtCore.pyqtSlot(bool)
     def onOK(self, checked):
-        self.OkButton.setDisabled(True)
-        self.revertButton.setDisabled(True)
+        ips = 0
         for lineEditView in self.lineEditViews:
-            lineEditView.writePref()
-        self.preservedDebugState = self.debugCheckBox.isChecked()
-        zad.prefs.debug = self.preservedDebugState
-        zad.prefs.sync()
+            ips += lineEditView.validateIP()
+        if ips > 0:
+            self.revertButton.setDisabled(True)
+            for lineEditView in self.lineEditViews:
+                lineEditView.writePref()
+            self.preservedDebugState = self.debugCheckBox.isChecked()
+            zad.prefs.debug = self.preservedDebugState
+            zad.prefs.sync()
+        else:
+            zad.app.application.beep()
 
     @QtCore.pyqtSlot(bool)
     def onRevert(self, checked):
@@ -78,19 +93,24 @@ class ZaSettingsDialog(QtWidgets.QDialog,zad.pyuic.settings.Ui_settingsTabWidget
         self.debugCheckBox.setChecked(self.preservedDebugState)
 
     def init_pane_1(self):
-        for lineEdit, prefName in [(self.masterServerLineEdit, 'master_server'),
-                                   (self.ddnsKeyFileLineEdit, 'ddns_key_file'),
-                                   (self.serverForZoneTransferLineEdit, 'ns_for_axfr'),
-                                   (self.initialDomainLineEdit, 'initial_domain'),
-                                   (self.defaultPrefixIPv4LineEdit, 'default_ip4_prefix'),
-                                   (self.defaultPrefixIPv6LineEdit, 'default_ip6_prefix'),
-                                   (self.logfileLineEdit, 'log_file')]:
-            plf = PrefLineEditView(lineEdit, prefName)
+        for lineEdit, prefName, isIP in [(self.masterServerLineEdit, 'master_server', True),
+                                   (self.ddnsKeyFileLineEdit, 'ddns_key_file', False),
+                                   (self.serverForZoneTransferLineEdit, 'ns_for_axfr', True),
+                                   (self.initialDomainLineEdit, 'initial_domain', False),
+                                   (self.defaultPrefixIPv4LineEdit, 'default_ip4_prefix', False),
+                                   (self.defaultPrefixIPv6LineEdit, 'default_ip6_prefix', False),
+                                   (self.logfileLineEdit, 'log_file', False)]:
+            plf = PrefLineEditView(lineEdit, prefName, isIP)
             self.lineEditViews.append(plf)
 
+        ips = 0
         for prefLineEditView in self.lineEditViews:
             prefLineEditView.readPref()
-
+            ips += prefLineEditView.validateIP()
+        if ips <= 0:                # bad ip read from settings file or no ip at all
+            self.serverForZoneTransferLineEdit.setText(zad.common.IP_XFR_NS)    # use default
+            self.masterServerLineEdit.setText('')                               # and no master server
+            self.onOK(True)                                                     # write back to file
         self.OkButton.setDisabled(True)
         self.revertButton.setDisabled(True)
         self.preservedDebugState = zad.prefs.debug

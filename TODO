@@ -3,5 +3,4 @@
 - Needing Reload button in editor
 - Implement search button with line Edit for search string in the editor.
 - let ignored zones act on subnets if reverse zone
-- Allow adding of RR to existing rrset
-
+- Allow adding of RR to existing rrset [DONE]
