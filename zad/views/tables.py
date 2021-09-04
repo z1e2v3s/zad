@@ -149,6 +149,7 @@ class ZoneEdit(ZoneView):
         self.zoneBoxNames = []
         self.netBoxNames = []
         self.zone: zad.models.axfr.Zone = None
+        self.zone_name = ''
         self.net_name = ''
         self.tableIndex: QtCore.QModelIndex = None
         
@@ -512,6 +513,9 @@ class ZoneEdit(ZoneView):
         model = None
         if zone_name:
             self.zone: zad.models.axfr.Zone = zad.models.axfr.Zone.zoneByName(zone_name)
+            if zone_name != self.zone_name:
+                self.tableIndex = None
+                self.zone_name = zone_name
         if self.zone.type in (zad.common.ZTIP4, zad.common.ZTIP6):                      # a net zone
             self.updateNets()
             if not self.net_name or self.net_name not in self.zone.nets.keys():
@@ -530,7 +534,9 @@ class ZoneEdit(ZoneView):
                                                             zad.common.ZTIP4, zad.common.ZTIP6):
             return
         if net_name in self.zone.nets:  ## FIXME: addNet changed asynchronously?
-            self.net_name = net_name
+            if net_name != self.net_name:
+                self.tableIndex = None
+                self.net_name = net_name
             model = zad.models.main.EditZoneModel(self.zone.nets[self.net_name].data, True)
             self.tabView.setModel(model)
             self.netBox.setCurrentText(net_name)
