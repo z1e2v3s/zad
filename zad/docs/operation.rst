@@ -19,6 +19,10 @@ on the command line.
 
 Currently there are no command line options.
 
+zad displays a demo zone on first startup ('zonetransfer.me').
+If this works, you should delete/replace 'Server for Zone Transfer' and 'Initial Domain'
+by your own zone and name server (see below).
+
 
 Configuration
 -------------
