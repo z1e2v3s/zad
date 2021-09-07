@@ -68,12 +68,18 @@ class ZoneView(QtCore.QObject):
         ct = cn = None
         if self.zoneBoxNames:
             ct = self.zoneBox.currentText()
+        if zone_name in self.zoneBoxNames:
+            self.zoneBoxNames.remove(zone_name)
+            if self.zone.type != zad.common.ZTDOM:
+                cn = self.net_name
         self.zoneBoxNames.append(zone_name)
         self.zoneBoxNames.sort()
         self.zoneBox.clear()
         self.zoneBox.addItems(self.zoneBoxNames)
         if ct:
             self.zoneBox.setCurrentText(ct)
+        if cn:
+            self.netBox.setCurrentText(cn)
 
 
     def reload_table(self, zone_name):
