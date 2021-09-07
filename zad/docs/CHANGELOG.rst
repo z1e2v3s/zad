@@ -33,3 +33,12 @@ Changelog
   in editor form for PTR RRs.
 - RDATA of A and AAAA RRs can now be filled by double clicking a row in the IPv4 or IPv6
   zone views
+
+1.0rc2 (2021-09-07)
+-------------------
+
+- Second release candidate
+- Fixed bug https://codeberg.org/ajr/zad/issues/3
+
+
+

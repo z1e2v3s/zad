@@ -19,11 +19,11 @@ In times of DNSsec, edited zone files interfere with resigning activities of
 the nameserver. To avoid inconsistency, zones can be maintained by dynamic update
 (RFC 2136).
 zad provides a GUI for dynamic updates and zone visualisation to make address
-and host name editing easy and even easier like than file editing.
+and host name editing easy and even easier than file editing.
  
 ABOUT THIS RELEASE
 ------------------
 
-* This is release candidate 1.
+* This is release candidate 2.
 * All functionality, planned for 1.0 has been implemented
 

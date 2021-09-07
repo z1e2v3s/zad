@@ -1,1 +1,1 @@
-zad/docs/source/README.rst
+zad/docs/README.rst

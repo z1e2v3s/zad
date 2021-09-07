@@ -32,7 +32,7 @@ and host name editing easy like zone file editing.
 
 setup(
     name="zad",
-    version="1.0rc1",
+    version="1.0rc2",
     license="GNU General Public License Version 3",
     description=("A GUI tool for maintaining DNS zones via dynamic update"),
     long_description=longdesc,
