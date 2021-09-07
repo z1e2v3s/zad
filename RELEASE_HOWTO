@@ -1,0 +1,60 @@
+Prepare for release
+Update all version strings
+Update docs
+
+build docs:
+
+workon zad
+cd zad/docs
+
+pip install --upgrade sphinx
+make html
+
+look at zad/zad/docs/build/html/index.html with browser
+
+How to package and upload:
+
+workon zad-package
+cd src/zad
+git pull
+pip install --upgrade pip build twine
+
+rm dist/*
+python -m build
+twine upload --repository testpypi dist/*
+
+workon zad-test
+pip uninstall zad
+python3 -m pip install --index-url https://test.pypi.org/simple/ zad
+
+run it:
+
+zad
+
+if all looks good, tag the new release:
+
+workon zad
+git tag R-1.0rc1 -m 'Release 1.0rc1'
+git push --tags
+git remote -v
+git push --tags codeberg master
+
+workon zad-package
+cd src/zad
+git pull
+
+rm dist/*
+python -m build
+twine upload --repository pypi dist/*
+
+look at https://pypi.org/project/zad/1.0rc1/
+later:
+
+workon zad-test
+pip uninstall zad
+python3 -m pip install zad 
+
+run it:
+
+zad
+

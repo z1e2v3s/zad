@@ -20,7 +20,7 @@ class ZaMainWindow(QtWidgets.QMainWindow,zad.pyuic.mainwindow.Ui_mainWindow):
     def __init__(self, parent=None):
         self.previous_status_text = ''
 
-        super(ZaMainWindow,self).__init__(parent)
+        super(ZaMainWindow, self).__init__(parent)
         self.setupUi(self)
         self.readSettings()
         zad.views.tables.setup(self)
@@ -49,8 +49,9 @@ class ZaMainWindow(QtWidgets.QMainWindow,zad.pyuic.mainwindow.Ui_mainWindow):
 
     @QtCore.pyqtSlot(str)
     def receive_zone_loaded_message(self, zone_name):
-        return zad.views.tables.zone_loaded(zone_name)
-        
+        zad.views.tables.zone_loaded(zone_name)
+        zad.views.tables.edit_zone_view.zoneEdit_message.connect(self.receive_status_bar_message)
+
     ##def sendtotask(self):
     ##    self.set_text_signal.emit("Task: Configured")
 
